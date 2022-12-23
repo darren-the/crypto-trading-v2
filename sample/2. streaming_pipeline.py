@@ -1,1 +1,0 @@
-# Inspirations: https://beam.apache.org/documentation/programming-guide/#user-initiated-checkpoint

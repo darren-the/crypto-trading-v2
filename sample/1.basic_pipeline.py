@@ -8,7 +8,9 @@ from datetime import datetime
 # This script introduces the following Apache Beam concepts: batch processing, bounded sources, DoFn SDKs and ParDo transforms
 # This also demonstrates a simple HTTP request to the Bitfinex API's Candle endpoint
 
-# Inspirations: https://beam.apache.org/documentation/transforms/python/elementwise/pardo/#example-1-pardo-with-a-simple-dofn
+# More information on things used in the code:
+#   - Bitfinex candles endpoint: https://docs.bitfinex.com/reference/rest-public-candles
+#   - ParDo function in Apache Beam: https://beam.apache.org/documentation/transforms/python/elementwise/pardo/#example-1-pardo-with-a-simple-dofn
 
 def date_str_to_timestamp(date_str: str) -> int:
     """
@@ -22,6 +24,10 @@ def date_str_to_timestamp(date_str: str) -> int:
 
 
 class FetchOCHL(beam.DoFn):
+    """
+    A DoFn class for fetching candlestick data from the bitfinex API.
+    """
+    
     def __init__(self):
         pass
 
