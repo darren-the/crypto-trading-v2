@@ -1,0 +1,15 @@
+steps:
+# run dataflow pipeline
+- name: 'gcr.io/crypto-trading-v2/dataflow-starter'
+  entrypoint: 'python'
+  args: [
+    'main.py',
+    '--runner', 'DataflowRunner',
+    '--project', 'crypto-trading-v2',
+    '--job_name', 'dataflow-pipeline',
+    '--region', 'us-central1',
+    '--temp_location', 'gs://crypto-trading-v2-dataflow/temp',
+    '--setup_file', './setup.py',
+    '--output', 'gs://crypto-trading-v2-dataflow/placeholder-pipeline-output',
+  ]
+
