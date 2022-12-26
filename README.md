@@ -2,16 +2,25 @@
 
 > :warning: Everything here is currently a draft and will likely change over time. Particularly, anything marked with a :question: is not set in stone and still needs to be determined.
 
-## Getting started
+## Getting familiar with the project
+Here are several things you should familiarise yourself with before getting started
+- Candlestick charts - what are the components of a 'candlestick'?
+- [`Sample code`](sample/1.basic_pipeline.py) for the pipeline. Specifically, get familiar with
+    - how to fetch candlestick data from an API,
+    - and the basics of [Apache Beam](https://beam.apache.org/)
+- Understand the main [data pipeline](#data-pipeline) and get an idea of what 'aggregations' and 'transformations' are
+- The [CI/CD pipeline](#cicd-pipeline)
+    - [Dataflow](https://cloud.google.com/dataflow)
+    - [Docker](https://www.docker.com/)
+
+## Setting up your local environment
 - This project uses [Python 3.7.9](https://www.python.org/downloads/release/python-379/) (:question:). Other versions _may_ work, but to be safe install this version if you don't have it already.
 - For python dependency management, we use __poetry__ (:question:). Follow the instructions in the [documentation](https://python-poetry.org/docs/) to install poetry and set up dependencies.
 
     :poop: Setting this up can become tedious so don't worry if you can't get it to work straight away
 
-- Take a look through the sample code [`/sample/1.basic_pipeline.py`](sample/1.basic_pipeline.py) to get an understanding of a basic pipeline. If you completed the above steps, then you should also be able to run it locally.
-
 ## Discovery checklist
-A list of to-dos for the discovery phase. This will probably be translated into a proper kanban board in [Notion](https://www.notion.so/product) at some point.
+A list of to-dos for the discovery phase. This will probably be translated into a proper kanban board in [Trello](https://trello.com/en) at some point.
 - [x] Install apache beam and test a basic bounded pipeline
 - [ ] Test creating a dataflow template
 - [ ] Run dataflow template through the google cloud API (or an alternate method)
