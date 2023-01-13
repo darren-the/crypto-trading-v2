@@ -3,6 +3,8 @@ import argparse
 from sys import argv
 from apache_beam.options.pipeline_options import PipelineOptions
 from pipeline.steps.fetch_candles import FetchCandles
+from pipeline.utils.pipeline_utils import PipelineStep, pipeline_step_options
+import pipeline.config as config
 
 
 def run():
@@ -20,25 +22,23 @@ def run():
     pipeline_parser = argparse.ArgumentParser()
     for key in pipeline_keys:
         pipeline_parser.add_argument(f'--{key}', dest=key)
-    pipeline_args, other_argv = pipeline_parser.parse_known_args(argv[1:])
+    pipeline_args, _ = pipeline_parser.parse_known_args(argv[1:])
     pipeline_options = PipelineOptions(**vars(pipeline_args))
 
-    # Define all other command line arguments
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        '--output',
-        dest='output',
-        default='local_test_data',
-        help='Output file to write results to.',
-    )
-    args = parser.parse_args(other_argv)
+    # Configure write destination of pipeline steps
+    if pipeline_args.runner == 'DataflowRunner':
+        pipeline_step_options['writer'] = 'BIGQUERY'
 
-    # Run pipeline steps
+    # Create and run pipeline
     with beam.Pipeline(options=pipeline_options) as p:
-        (
-            p
-            | beam.Create([0])
-            | beam.ParDo(FetchCandles())
-            | beam.io.WriteToText(args.output, file_name_suffix='.txt')
-        )
-    
+        setup_steps = p | beam.Create([0])
+        
+        # Symbol branching
+        for symbol in config.symbols:
+            
+            # Timeframe branching
+            for timeframe in config.timeframes:
+                pipeline_step_options['symbol'] = symbol
+                pipeline_step_options['timeframe'] = timeframe
+
+                setup_steps | PipelineStep(FetchCandles())

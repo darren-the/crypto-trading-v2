@@ -7,3 +7,6 @@ crypto_trading_v2.egg-info
 # alternatively we can run "pip install -e ." which doesn't create this folder, but we can introduce this later when it actually
 # is a problem
 build
+
+# current name for storing data during local testing.
+data
