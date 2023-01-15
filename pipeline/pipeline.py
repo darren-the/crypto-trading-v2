@@ -1,16 +1,27 @@
+# Apache beam imports
 import apache_beam as beam
+from apache_beam.options.pipeline_options import PipelineOptions
+
+# Imports for argument parsing
 import argparse
 from sys import argv
-from apache_beam.options.pipeline_options import PipelineOptions
-from pipeline.steps.fetch_candles import FetchCandles
-from pipeline.utils.pipeline_utils import PipelineStep, pipeline_step_options
+
+# Import pipeline utils and config variables
+from pipeline.utils.pipeline_utils import PipelineWriter, PipelineWriterOptions
 import pipeline.config as config
 
+# Import candlestick steps
+from pipeline.steps.candles.fetch_candles import FetchCandles
+from pipeline.steps.candles.dedup_candles import DedupCandles
+from pipeline.steps.candles.impute_candles import ImputeCandles
+
+# Import transformers
+from pipeline.steps.transformers import placeholder_transformer
 
 def run():
     """TODO: Add description"""
 
-    # Define pipeline options which are passed as command line arguments
+    # Define beam options which are passed as command line arguments
     pipeline_keys = [
         'runner',
         'project',
@@ -19,26 +30,61 @@ def run():
         'temp_location',
         'setup_file',
     ]
-    pipeline_parser = argparse.ArgumentParser()
+    beam_parser = argparse.ArgumentParser()
     for key in pipeline_keys:
-        pipeline_parser.add_argument(f'--{key}', dest=key)
-    pipeline_args, _ = pipeline_parser.parse_known_args(argv[1:])
-    pipeline_options = PipelineOptions(**vars(pipeline_args))
+        beam_parser.add_argument(f'--{key}', dest=key)
+    beam_args, other_argv = beam_parser.parse_known_args(argv[1:])
+    beam_options = PipelineOptions(**vars(beam_args))
 
-    # Configure write destination of pipeline steps
-    if pipeline_args.runner == 'DataflowRunner':
-        pipeline_step_options['writer'] = 'BIGQUERY'
+    # Define all other command line arguments
+    arg_parser = argparse.ArgumentParser()
+    arg_parser.add_argument(
+        '--start',
+        dest='start',
+        default=config.default_hist_start,
+        help='Start date of historical data',
+    )
+    arg_parser.add_argument(
+        '--end',
+        dest='end',
+        default=config.default_hist_end,
+        help='End date of historical data',
+    )
+    arg_parser.add_argument(
+        '--writer',
+        dest='writer',
+        default='TEXT',
+        help='Write method of pipeline steps'
+    )
+    args = arg_parser.parse_args(other_argv)
 
-    # Create and run pipeline
-    with beam.Pipeline(options=pipeline_options) as p:
+    # Initialise pipeline step options
+    writer_options = PipelineWriterOptions()
+    writer_options.set_writer(args.writer)
+
+    # Create and run the pipeline
+    # If a step's output is to be written, wrap a PipelineWriter instance around it
+    # These steps must have a defined table and schema in the pipeline config
+    #
+    # Otherwise, wrap it with a beam.ParDo instance
+    with beam.Pipeline(options=beam_options) as p:
         setup_steps = p | beam.Create([0])
         
         # Symbol branching
         for symbol in config.symbols:
+            writer_options.set_symbol(symbol)
+
+            fetch_candles = (
+                setup_steps
+                | beam.ParDo(FetchCandles(args.start, args.end))  # TODO: if start and end gets passed frequently then may make it global
+                | beam.ParDo(DedupCandles())
+                | PipelineWriter(ImputeCandles(args.start, args.end))
+            )
             
             # Timeframe branching
             for timeframe in config.timeframes:
-                pipeline_step_options['symbol'] = symbol
-                pipeline_step_options['timeframe'] = timeframe
+                writer_options.set_timeframe(timeframe)
 
-                setup_steps | PipelineStep(FetchCandles())
+                # Transformation steps
+                # TODO: Aggregate candles
+

@@ -10,5 +10,6 @@ steps:
     '--region', 'us-central1',
     '--temp_location', 'gs://crypto-trading-v2-dataflow/temp',
     '--setup_file', './setup.py',
+    '--writer', 'BIGQUERY',
   ]
 
