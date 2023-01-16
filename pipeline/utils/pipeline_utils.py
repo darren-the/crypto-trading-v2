@@ -31,6 +31,7 @@ class PipelineWriter(beam.PTransform):
         self.text_dest = self.table.replace('.', '-')
         self.bq_dest = self.table
         self.schema = config.schema[self.config_name]
+        self.label = self.table  # Configure pipeline label property
 
     def expand(self, pcoll):
         writer = self._get_writer()

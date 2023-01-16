@@ -47,5 +47,5 @@ class FetchCandles(beam.DoFn):
                 }  # exclude volume for now
             
             # Calculate length of time delay to not breach req limit
-            delay = 60 / config.bitfinex['candles']['max_req_per_min']
+            delay = (60 / config.bitfinex['candles']['max_req_per_min']) * len(config.symbols)
             time.sleep(delay)
