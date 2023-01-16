@@ -14,6 +14,7 @@ import pipeline.config as config
 from pipeline.steps.candles.fetch_candles import FetchCandles
 from pipeline.steps.candles.dedup_candles import DedupCandles
 from pipeline.steps.candles.impute_candles import ImputeCandles
+from pipeline.steps.candles.aggregate_candles import AggregateCandles
 
 # Import transformers
 from pipeline.steps.transformers import placeholder_transformer
@@ -71,20 +72,22 @@ def run():
         setup_steps = p | beam.Create([0])
         
         # Symbol branching
-        for symbol in config.symbols:
-            writer_options.set_symbol(symbol)
+        for s in config.symbols:
+            writer_options.set_symbol(s)
 
             fetch_candles = (
                 setup_steps
                 | beam.ParDo(FetchCandles(args.start, args.end))  # TODO: if start and end gets passed frequently then may make it global
                 | beam.ParDo(DedupCandles())
-                | PipelineWriter(ImputeCandles(args.start, args.end))
+                | beam.ParDo(ImputeCandles(args.start, args.end))
             )
             
             # Timeframe branching
-            for timeframe in config.timeframes:
-                writer_options.set_timeframe(timeframe)
+            for t in config.timeframes:
+                writer_options.set_timeframe(t)
 
-                # Transformation steps
-                # TODO: Aggregate candles
+                (
+                    fetch_candles | PipelineWriter(AggregateCandles(t))
+                )
+                
 

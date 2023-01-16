@@ -1,5 +1,5 @@
-import time
 from datetime import datetime
+import calendar
 
 
 def date_str_to_timestamp(date_str: str) -> int:
@@ -10,7 +10,7 @@ def date_str_to_timestamp(date_str: str) -> int:
     Returns:
         int: a timestamp conversion of the given date string
     """
-    return int(time.mktime(datetime.strptime(date_str, '%Y-%m-%d').timetuple()) * 1000)
+    return int(calendar.timegm(datetime.strptime(date_str, '%Y-%m-%d').timetuple()) * 1000)
 
 def timeframe_to_ms(timeframe: str) -> int:
     """

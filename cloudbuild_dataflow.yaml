@@ -11,5 +11,7 @@ steps:
     '--temp_location', 'gs://crypto-trading-v2-dataflow/temp',
     '--setup_file', './setup.py',
     '--writer', 'BIGQUERY',
+    '--start', '2014-01-01',
+    '--end', '2023-01-01',
   ]
 

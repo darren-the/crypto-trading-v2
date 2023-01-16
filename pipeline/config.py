@@ -1,16 +1,29 @@
 local_env_data = './data'
 symbols = ['BTCUSD']
-timeframes = ['1m']
+timeframes = [
+    '1m',
+    # '5m',
+    # '15m',
+    # '30m',
+    # '1h',
+    # '2h',
+    # '4h',
+    # '6h',
+    # '12h',
+    # '1D',
+    # '2D',
+]
 table = {
-    'imputecandles': 'candles',
+    'aggregatecandles': 'candles',
 }
 schema = {
-    'imputecandles': [
+    'aggregatecandles': [
         {'name': 'timestamp', 'type': 'NUMERIC', 'mode': 'REQUIRED'},
         {'name': 'open', 'type': 'NUMERIC', 'mode': 'REQUIRED'},
         {'name': 'close', 'type': 'NUMERIC', 'mode': 'REQUIRED'},
         {'name': 'high', 'type': 'NUMERIC', 'mode': 'REQUIRED'},
         {'name': 'low', 'type': 'NUMERIC', 'mode': 'REQUIRED'},
+        {'name': 'rank', 'type': 'INT64', 'mode': 'REQUIRED'}
     ]
 }
 default_hist_start = '2022-01-01'
