@@ -29,7 +29,9 @@ def candles():
             , high
             , low
         FROM `crypto-trading-v2.BTCUSD.candles-{args.get('timeframe')}`
-        WHERE timestamp BETWEEN {args.get('start')} AND {args.get('end')}
+        WHERE
+            timestamp >= {args.get('start')}
+            AND timestamp < {args.get('end')}
         QUALIFY ROW_NUMBER() OVER (
             PARTITION BY timestamp
             ORDER BY rank DESC
