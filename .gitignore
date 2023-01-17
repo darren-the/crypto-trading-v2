@@ -10,3 +10,6 @@ build
 
 # current name for storing data during local testing.
 data
+
+# google service account key
+service_account_key.json
