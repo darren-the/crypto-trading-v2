@@ -13,3 +13,26 @@ data
 
 # google service account key
 service_account_key.json
+
+# ===================== CHARTING =====================
+# dependencies
+charts/node_modules
+charts/.pnp
+.pnp.js
+
+# testing
+charts/coverage
+
+# production
+charts/build
+
+# misc
+charts/.DS_Store
+charts/.env.local
+charts/.env.development.local
+charts/.env.test.local
+charts/.env.production.local
+
+charts/npm-debug.log*
+charts/yarn-debug.log*
+charts/yarn-error.log*

@@ -7,4 +7,12 @@ services:
       - "5000:5000"
     volumes:
       - ./api:/app
+
+  charts:
+    build: ./charts
+    container_name: charts_container
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./charts:/app
   
