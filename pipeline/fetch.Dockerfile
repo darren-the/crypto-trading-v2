@@ -1,0 +1,13 @@
+FROM gcr.io/dataflow-templates-base/python3-template-launcher-base
+
+WORKDIR /app
+
+COPY pipeline/. .
+
+ENV FLEX_TEMPLATE_PYTHON_PY_FILE="/app/fetch.py"
+ENV FLEX_TEMPLATE_PYTHON_SETUP_FILE="/app/setup.py"
+ENV FLEX_TEMPLATE_PYTHON_REQUIREMENTS_FILE=""
+ENV FLEX_TEMPLATE_PYTHON_PY_OPTIONS=""
+ENV FLEX_TEMPLATE_PYTHON_EXTRA_PACKAGES=""
+
+RUN pip install .

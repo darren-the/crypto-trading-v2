@@ -50,5 +50,5 @@ with beam.Pipeline() as p:
         p
         | beam.Create([0])
         | beam.ParDo(FetchOCHL())
-        | beam.Map(print) 
+        | beam.io.WriteToText('gs://crypto-trading-v2-dataflow/placeholder-pipeline-output', file_name_suffix='.txt')
     )

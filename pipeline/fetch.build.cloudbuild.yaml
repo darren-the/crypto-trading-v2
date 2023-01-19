@@ -1,0 +1,16 @@
+steps:
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'build_docker_image'
+    args: ['build', '-t', 'us-central1-docker.pkg.dev/crypto-trading-v2/dataflow/fetch-pipeline', '-f', 'pipeline/fetch.Dockerfile', '.'] 
+
+  - name: 'gcr.io/cloud-builders/gcloud'
+    id: 'create_flex_template'
+    args: [
+      'dataflow', 'flex-template', 'build', 'gs://crypto-trading-v2-dataflow/fetch-pipeline.json', 
+      '--image', 'us-central1-docker.pkg.dev/crypto-trading-v2/dataflow/fetch-pipeline',
+      '--sdk-language', 'PYTHON',
+      '--metadata-file', 'pipeline/fetch.json'
+    ]
+    waitFor: ['build_docker_image']
+images:
+- 'us-central1-docker.pkg.dev/crypto-trading-v2/dataflow/fetch-pipeline'

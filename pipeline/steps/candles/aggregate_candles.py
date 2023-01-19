@@ -1,5 +1,5 @@
 import apache_beam as beam
-from pipeline.utils.utils import timeframe_to_ms
+from utils.utils import timeframe_to_ms
 from copy import deepcopy
 
 class AggregateCandles(beam.DoFn):
