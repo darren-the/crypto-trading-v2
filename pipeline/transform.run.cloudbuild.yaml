@@ -1,0 +1,7 @@
+steps:
+  - name: 'gcr.io/cloud-builders/gcloud'
+    id: 'run_flex_template'
+    args: [
+      'dataflow', 'flex-template', 'run', 'transform-pipeline',
+      '--template-file-gcs-location', 'gs://crypto-trading-v2-dataflow/transform-pipeline.json', 
+    ]

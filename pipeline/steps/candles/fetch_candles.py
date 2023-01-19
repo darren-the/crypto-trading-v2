@@ -1,7 +1,7 @@
 import requests
 import apache_beam as beam
-from pipeline.utils.utils import date_str_to_timestamp, timeframe_to_ms
-import pipeline.config as config
+from utils.utils import date_str_to_timestamp, timeframe_to_ms
+from configs import config
 import time
 
 
@@ -44,7 +44,8 @@ class FetchCandles(beam.DoFn):
                     'close': candle[2],
                     'high': candle[3],
                     'low': candle[4],
-                }  # exclude volume for now
+                    # exclude volume for now
+                }
             
             # Calculate length of time delay to not breach req limit
             delay = (60 / config.bitfinex['candles']['max_req_per_min']) * len(config.symbols)

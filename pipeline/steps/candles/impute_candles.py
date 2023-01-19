@@ -1,5 +1,5 @@
 import apache_beam as beam
-from pipeline.utils.utils import date_str_to_timestamp, timeframe_to_ms
+from utils.utils import date_str_to_timestamp, timeframe_to_ms
 from copy import deepcopy
 
 

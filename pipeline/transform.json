@@ -1,0 +1,4 @@
+{
+    "name": "Transform candles",
+    "description": "A Dataflow pipeline for transforming candles"
+}
