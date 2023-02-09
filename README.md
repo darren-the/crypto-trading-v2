@@ -1,4 +1,4 @@
-# crypto-trading-v2
+# crypto-trading-v2 (OUTDATED)
 
 > :warning: Everything here is currently a draft and will likely change over time. Particularly, anything marked with a :question: is not set in stone and still needs to be determined.
 
