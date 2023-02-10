@@ -34,8 +34,10 @@ schema = {
         {'name': 'rank', 'type': 'INT64', 'mode': 'REQUIRED'}
     ]
 }
-default_hist_start = '2014-01-01'
-default_hist_end = '2023-01-01'
+bq_hist_start = '2014-01-01'
+bq_hist_end = '2023-01-01'
+local_hist_start = '2022-01-01'
+local_hist_end = '2022-02-01'
 bitfinex = {
     'base_url': 'https://api-pub.bitfinex.com/v2',
     'candles': {

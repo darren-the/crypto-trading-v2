@@ -30,7 +30,7 @@ def run():
             (
                 p 
                 | beam.Create([0]) 
-                | beam.ParDo(FetchCandles(config.default_hist_start, config.default_hist_end))
+                | beam.ParDo(FetchCandles(config.bq_hist_start, config.bq_hist_end))
                 | beam.ParDo(DedupCandles())
                 | beam.ParDo(ImputeCandles(config.default_hist_start, config.default_hist_end))
                 | beam.io.WriteToBigQuery(
