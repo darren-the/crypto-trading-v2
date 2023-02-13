@@ -7,11 +7,17 @@ const Chart = () => {
   // Variables that trigger a render
   const [timeframe, setTimeframe] = useState(config.defaultTimeframe)
   const [timestamp, setTimestamp] = useState(null)
-  const triggers = { timeframe, timestamp }
+  const [toggleHighLow, setToggleHighLow] = useState(true)
 
   // Charting
   const { chart, chartRef, series } = useCreateChart()
-  useUpdateSeries(chart, series, triggers)
+  useUpdateSeries(
+    chart,
+    series,
+    timeframe,
+    timestamp,
+    toggleHighLow
+  )
 
   // Function for inputting a date
   const submitDate = (e) => {
@@ -29,6 +35,11 @@ const Chart = () => {
     <button key={t} onClick={() => setTimeframe(t)}>{t}</button>
   )
 
+  // Toggle high low function
+  const toggleHighLowClick = () => {
+    if (toggleHighLow) setToggleHighLow(false)
+    else setToggleHighLow(true)
+  }
   return (
     <div>
       <div style={{width: 1600, height: 700}}ref={chartRef} />
@@ -39,7 +50,8 @@ const Chart = () => {
         </label>
       </form>
       {timeframeButtons}
-      <span>current timeframe: {timeframe}</span>
+      <div>current timeframe: {timeframe}</div>
+      <button onClick={toggleHighLowClick}>Toggle highs and lows</button>
     </div>
   )
 }

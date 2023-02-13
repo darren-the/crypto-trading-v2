@@ -46,8 +46,27 @@ export const useCreateChart = () => {
 
     /* ==================== SERIES OPTIONS ==================== */
 
-    const series = chart.addCandlestickSeries({})
-    setSeriesState(series)
+    const candleSeries = chart.addCandlestickSeries({})
+
+    const highSeries = chart.addCandlestickSeries({})
+    highSeries.applyOptions({
+      wickUpColor: '#3674d9',
+      upColor: '#3674d9',
+      wickDownColor: '#3674d9',
+      downColor: '#3674d9',
+      borderVisible: false,
+    })
+
+    const lowSeries = chart.addCandlestickSeries({})
+    lowSeries.applyOptions({
+      wickUpColor: '#fccb19',
+      upColor: '#fccb19',
+      wickDownColor: '#fccb19',
+      downColor: '#fccb19',
+      borderVisible: false,
+    })
+
+    setSeriesState({ candleSeries, highSeries, lowSeries })
 
 
     /* ==================== RESIZE HANDLING ==================== */
