@@ -16,6 +16,7 @@ timeframes = [
 table = {
     'basecandles': 'base-candles',
     'aggregatecandles': 'candles',
+    'highlow': 'high-low',
 }
 schema = {
     'basecandles': [
@@ -27,11 +28,23 @@ schema = {
     ],
     'aggregatecandles': [
         {'name': 'timestamp', 'type': 'NUMERIC', 'mode': 'REQUIRED'},
+        {'name': 'candle_timestamp', 'type': 'NUMERIC', 'mode': 'REQUIRED'},
         {'name': 'open', 'type': 'NUMERIC', 'mode': 'REQUIRED'},
         {'name': 'close', 'type': 'NUMERIC', 'mode': 'REQUIRED'},
         {'name': 'high', 'type': 'NUMERIC', 'mode': 'REQUIRED'},
         {'name': 'low', 'type': 'NUMERIC', 'mode': 'REQUIRED'},
-        {'name': 'rank', 'type': 'INT64', 'mode': 'REQUIRED'}
+        {'name': 'is_complete', 'type': 'BOOL', 'mode': 'REQUIRED'},
+    ],
+    'highlow': [
+        {'name': 'timestamp', 'type': 'NUMERIC', 'mode': 'REQUIRED'},
+        {'name': 'is_high', 'type': 'BOOL', 'mode': 'REQUIRED'},
+        {'name': 'high_timestamp', 'type': 'NUMERIC', 'mode': 'REQUIRED'},
+        {'name': 'high_top', 'type': 'NUMERIC', 'mode': 'REQUIRED'},
+        {'name': 'high_bottom', 'type': 'NUMERIC', 'mode': 'REQUIRED'},
+        {'name': 'is_low', 'type': 'BOOL', 'mode': 'REQUIRED'},
+        {'name': 'low_timestamp', 'type': 'NUMERIC', 'mode': 'REQUIRED'},
+        {'name': 'low_top', 'type': 'NUMERIC', 'mode': 'REQUIRED'},
+        {'name': 'low_bottom', 'type': 'NUMERIC', 'mode': 'REQUIRED'},
     ]
 }
 bq_hist_start = '2014-01-01'

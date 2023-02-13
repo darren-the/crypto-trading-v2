@@ -9,7 +9,6 @@ class AggregateCandles(beam.DoFn):
         self.base_ms = timeframe_to_ms('1m')
         self.ms = timeframe_to_ms(timeframe)
         self.last_candle = None
-        self.rank = 0
 
     def process(self, element):
         if self.start_timestamp is None:
@@ -23,16 +22,19 @@ class AggregateCandles(beam.DoFn):
 
         # Refresh last candles
         if (element['timestamp'] - self.start_timestamp) % self.ms == 0:
-            self.rank = 0
             self.last_candle = deepcopy(element)
-            self.last_candle['rank'] = self.rank
+            self.last_candle['candle_timestamp'] = element['timestamp']
+            self.last_candle['is_complete'] = False if self.ms > self.base_ms else True
 
         else:
             # Update candle
-            self.rank += 1
             updated_candle = deepcopy(self.last_candle)
             updated_candle['close'] = element['close']
-            updated_candle['rank'] = self.rank
+            updated_candle['timestamp'] = element['timestamp']
+
+            if (element['timestamp'] - self.start_timestamp + self.base_ms) % self.ms == 0:
+                updated_candle['is_complete'] = True
+
             if updated_candle['high'] < element['high']:
                 updated_candle['high'] = element['high']
             if updated_candle['low'] > element['low']:

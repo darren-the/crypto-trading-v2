@@ -4,6 +4,12 @@
     "fetchWindow": 10000,
     "defaultVisibleWindow": 500
   },
+  "highs": {
+    "url": "http://localhost:5000/highs"
+  },
+  "lows": {
+    "url": "http://localhost:5000/lows"
+  },
   "timeframes": [
     "1m",
     "5m",
