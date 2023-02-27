@@ -13,7 +13,9 @@ from steps.candles.impute_candles import ImputeCandles
 from steps.candles.aggregate_candles import AggregateCandles
 
 # Import transformers
-from steps.transformers.HighLow import HighLow
+from steps.transformers.high_low import HighLow
+from steps.transformers.resistance import Resistance
+from steps.transformers.support import Support
 
 # Other libraries
 import argparse
@@ -46,38 +48,57 @@ def run():
     with beam.Pipeline(options=beam_options) as p:
         for symbol in config.symbols:
             for timeframe in config.timeframes:
-                (
+                branch0 = (
                     p | f'{symbol}-create-{timeframe}' >> beam.Create([0])
 
                     | Step(
                         step=FetchCandles(start_date, end_date, write_dest=args.write_dest),
                         symbol=symbol,
                         timeframe=timeframe,
-                        write_dest=None)
+                        write_dest=None
+                    )
 
                     | Step(
                         step=DedupCandles(),
                         symbol=symbol,
                         timeframe=timeframe,
-                        write_dest=None)
+                        write_dest=None
+                    )
                     
                     | Step(
                         step=ImputeCandles(start_date, end_date),
                         symbol=symbol,
                         timeframe=timeframe,
-                        write_dest=None)
+                        write_dest=None
+                    )
 
                     | Step(
-                        step=AggregateCandles(timeframe)
-                        , symbol=symbol
-                        , timeframe=timeframe
-                        , write_dest=args.write_dest)
+                        step=AggregateCandles(timeframe),
+                        symbol=symbol,
+                        timeframe=timeframe,
+                        write_dest=args.write_dest
+                    )
 
                     | Step(
-                        step=HighLow(pivot=5)
-                        , symbol=symbol
-                        , timeframe=timeframe
-                        , write_dest=args.write_dest)   
+                        step=HighLow(pivot=5),
+                        symbol=symbol,
+                        timeframe=timeframe,
+                        write_dest=args.write_dest
+                    )
+                )
+
+                branch0 | Step(
+                    step=Resistance(),
+                    symbol=symbol,
+                    timeframe=timeframe,
+                    write_dest=args.write_dest
+                )
+
+                branch0 | Step(
+                    step=Support(),
+                    symbol=symbol,
+                    timeframe=timeframe,
+                    write_dest=args.write_dest
                 )
                 
 

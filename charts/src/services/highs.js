@@ -6,7 +6,7 @@ export const fetchHighs = (
   start,
   end
 ) => {
-  return axios.get(`${config.highs.url}?timeframe=${timeframe}&start=${start}&end=${end}`).then(response => {
+  return axios.get(`${config.base_url}${config.highs.path}?timeframe=${timeframe}&start=${start}&end=${end}`).then(response => {
     return response.data.data
 })
   .catch(error => 

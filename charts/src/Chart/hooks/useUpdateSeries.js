@@ -3,6 +3,8 @@ import config from '../../config.json'
 import { fetchCandles } from '../../services/candles'
 import { fetchHighs } from '../../services/highs'
 import { fetchLows } from '../../services/lows'
+import { fetchResistance } from '../../services/resistance'
+import { fetchSupport } from '../../services/support'
 
 // define constants
 const NONE = 0
@@ -15,7 +17,8 @@ export const useUpdateSeries = (
   series,
   timeframe,
   timestamp,
-  toggleHighLow
+  toggleHighLow,
+  toggleResSup,
 ) => {
   // state is used to trigger useEffects
   const [truncTime, setTruncTime] = useState(null)
@@ -25,28 +28,38 @@ export const useUpdateSeries = (
   const [candles, setCandles] = useState([])
   const [highs, setHighs] = useState([])
   const [lows, setLows] = useState([])
+  const [resistance, setResistance] = useState([])
+  const [support, setSupport] = useState([])
 
   // ref is decoupled from renders (for event handler)
   const loadMoreRef = useRef(false)  
   const initialRender = useRef(true)
+  const candleStartTime = useRef(0)
   const lastIndex = useRef(null)
   const startOfData = useRef(false)
   const endOfData = useRef(false)
+  const resPriceLines = useRef([])
+  const supPriceLines = useRef([])
+  const resSupVisible = useRef(true)
+  const VTRChangeHandlerRef = useRef(null)
+  const isLoading = useRef(false)
   
   /* =========== HANDLE VISIBLE LOGICAL RANGE CHANGE =========== */
   useEffect(() => {
     if (chart == null || series == null) return
 
     const VLRChangeHandler = (VLR) => {
-      if (loadMoreRef.current) return
+      if (loadMoreRef.current || isLoading.current) return
       
       if (!startOfData.current && VLR.from < 0) {
         loadMoreRef.current = true
         console.log('need more previous data')
+        isLoading.current = true
         setLoadMode(PREPEND)
       } else if (!endOfData.current && lastIndex.current != null && VLR.to > lastIndex.current) {
         loadMoreRef.current = true
         console.log('need next data')
+        isLoading.current = true
         setLoadMode(APPEND)
       }
     }
@@ -55,6 +68,43 @@ export const useUpdateSeries = (
   // eslint-disable-next-line
   }, [series])
 
+  /* =========== HANDLE VISIBLE TIME RANGE CHANGE =========== */
+  useEffect(() => {
+    if (chart == null || series == null) return
+
+    if (VTRChangeHandlerRef != null) chart.timeScale().unsubscribeVisibleTimeRangeChange(VTRChangeHandlerRef.current)
+
+    VTRChangeHandlerRef.current = (VTR) => {
+      const to_index = (VTR.to - candleStartTime.current) * 1000 / config.timeframe_to_ms[timeframe]
+      if (resistance.length > 0 && !isLoading.current && resSupVisible.current) {
+        if (resPriceLines.current.length > 0) resPriceLines.current.map(line => series.candleSeries.removePriceLine(line))
+        resPriceLines.current = resistance[to_index].top_history.map(top_price =>
+          series.candleSeries.createPriceLine({
+            price: top_price,
+            color: '#ef5350',
+            lineWidth: 2,
+            lineStyle: 0,
+          })
+        )
+      }
+      if (support.length > 0 && !isLoading.current && resSupVisible.current) {
+        if (supPriceLines.current.length > 0) supPriceLines.current.map(line => series.candleSeries.removePriceLine(line))
+        supPriceLines.current = support[to_index].bottom_history.map(bottom_price =>
+          series.candleSeries.createPriceLine({
+            price: bottom_price,
+            color: '#26a69a',
+            lineWidth: 2,
+            lineStyle: 0,
+          })
+        )
+      }
+    }
+
+    chart.timeScale().subscribeVisibleTimeRangeChange(VTRChangeHandlerRef.current)
+
+  // eslint-disable-next-line
+  }, [series, candles, resistance, support, timeframe])
+
   /* ================== DETECT NEW TIMESTAMP ================== */
   useEffect(() => {
     if (timestamp != null) {
@@ -62,6 +112,12 @@ export const useUpdateSeries = (
       endOfData.current = false
       setTruncTime(timestamp)
       setLoadMode(TRUNCATE_ALL)
+      Object.entries(series).forEach(([k,v]) => {
+          v.applyOptions({
+            visible: false
+          })
+      })
+      isLoading.current = true
       console.log('new timestamp detected')
     }
   // eslint-disable-next-line
@@ -76,6 +132,12 @@ export const useUpdateSeries = (
       endOfData.current = false
       setTruncTime(chart.timeScale().getVisibleRange().from * 1000)
       setLoadMode(TRUNCATE_ALL)
+      Object.entries(series).forEach(([k,v]) => {
+        v.applyOptions({
+          visible: false
+        })
+      })
+      isLoading.current = true
       console.log('new timeframe detected')
     }
     // eslint-disable-next-line
@@ -88,6 +150,16 @@ export const useUpdateSeries = (
     series.lowSeries.applyOptions({visible: toggleHighLow})
     // eslint-disable-next-line
   }, [toggleHighLow])
+
+  /* ================== TOGGLE RES AND SUPPS ================== */
+  useEffect(() => {
+    if (series === null) return
+    if (resSupVisible.current) resSupVisible.current = false
+    else resSupVisible.current = true
+    if (resPriceLines.current.length > 0) resPriceLines.current.map(line => series.candleSeries.removePriceLine(line))
+    if (supPriceLines.current.length > 0) supPriceLines.current.map(line => series.candleSeries.removePriceLine(line))
+    // eslint-disable-next-line
+  }, [toggleResSup])
 
   /* ===================== UPDATE SERIES ===================== */
   useEffect(() => {
@@ -115,8 +187,9 @@ export const useUpdateSeries = (
       concatMethod = (newData, oldData) => newData
     }
 
-    // fetch candles
-    fetchCandles(timeframe, start, end).then(candleData => {
+    const updateSeries = async () => {
+      // update candles
+      const candleData = await fetchCandles(timeframe, start, end)
       if (candleData.length === 0) {
         if (loadMode === PREPEND) {
           console.log('start of data')
@@ -128,13 +201,30 @@ export const useUpdateSeries = (
         }
         if (loadMode === TRUNCATE_ALL) console.log('Invalid range: No data in database for this range')
       }
-
-      // update candlestick series
       const newCandles = concatMethod(candleData, candles)
-      series.candleSeries.setData(newCandles)
       setCandles(newCandles)
+
+      candleStartTime.current = newCandles[0].time
       lastIndex.current = newCandles.length - 1
 
+      // update highs
+      const highData = await fetchHighs(timeframe, start, end)
+      const candleHighs = candleData.filter(candle => highData.includes(candle.time_ms))
+      const newHighs = concatMethod(candleHighs, highs)
+      setHighs(newHighs)
+      
+
+      // fetch lows
+      const lowData = await fetchLows(timeframe, start, end)
+      const candleLows = candleData.filter(candle => lowData.includes(candle.time_ms))
+      const newLows = concatMethod(candleLows, lows)
+      setLows(newLows)
+
+      // update charts
+      series.candleSeries.setData(newCandles)
+      series.highSeries.setData(newHighs)
+      series.lowSeries.setData(newLows)
+      
       // set visible range
       if (loadMode === TRUNCATE_ALL) {
         chart.timeScale().setVisibleRange({
@@ -142,35 +232,30 @@ export const useUpdateSeries = (
           to: (truncTime + config.timeframe_to_ms[timeframe] * config.candles.defaultVisibleWindow) / 1000
         })
       }
+
+      // Show all data
+      Object.entries(series).forEach(([k,v]) => {
+        v.applyOptions({
+          visible: true
+        })
+      })
+
+      // update resistances
+      const resData = await fetchResistance(timeframe, start, end)
+      const newRes = concatMethod(resData, resistance)
+      setResistance(newRes)
+
+      // update supports
+      const supData = await fetchSupport(timeframe, start, end)
+      const newSup = concatMethod(supData, support)
+      setSupport(newSup)
       
-      // candlestick dependent series updates
+      isLoading.current = false
+      loadMoreRef.current = false  // prevent spam loading new data
+    }
+      
+    updateSeries()
 
-      // fetch highs
-      fetchHighs(timeframe, start, end).then(highData => {
-        // filter candles to highs
-        const candleHighs = candleData.filter(candle => highData.includes(candle.time_ms))
-
-        // update highs series
-        const newHighs = concatMethod(candleHighs, highs)
-        series.highSeries.setData(newHighs)
-        setHighs(newHighs)
-      })
-
-      // fetch lows
-      fetchLows(timeframe, start, end).then(lowData => {
-        // filter candles to lows
-        const candleLows = candleData.filter(candle => lowData.includes(candle.time_ms))
-
-        // update lows series
-        const newLows = concatMethod(candleLows, lows)
-        series.lowSeries.setData(newLows)
-        setLows(newLows)
-      })
-
-      // reset states
-      loadMoreRef.current = false
-    })
-    
   // eslint-disable-next-line
-  }, [loadMode, candles])
+  }, [loadMode, candles, lows, highs])
 }

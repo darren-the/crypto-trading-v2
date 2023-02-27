@@ -17,6 +17,8 @@ table = {
     'basecandles': 'base-candles',
     'aggregatecandles': 'candles',
     'highlow': 'high-low',
+    'resistance': 'resistance',
+    'support': 'support',
 }
 schema = {
     'basecandles': [
@@ -37,6 +39,7 @@ schema = {
     ],
     'highlow': [
         {'name': 'timestamp', 'type': 'NUMERIC', 'mode': 'REQUIRED'},
+        {'name': 'candle_timestamp', 'type': 'NUMERIC', 'mode': 'REQUIRED'},
         {'name': 'is_high', 'type': 'BOOL', 'mode': 'REQUIRED'},
         {'name': 'high_timestamp', 'type': 'NUMERIC', 'mode': 'REQUIRED'},
         {'name': 'high_top', 'type': 'NUMERIC', 'mode': 'REQUIRED'},
@@ -45,7 +48,29 @@ schema = {
         {'name': 'low_timestamp', 'type': 'NUMERIC', 'mode': 'REQUIRED'},
         {'name': 'low_top', 'type': 'NUMERIC', 'mode': 'REQUIRED'},
         {'name': 'low_bottom', 'type': 'NUMERIC', 'mode': 'REQUIRED'},
-    ]
+    ],
+    'resistance': [
+        {'name': 'timestamp', 'type': 'NUMERIC', 'mode': 'REQUIRED'},
+        {'name': 'candle_timestamp', 'type': 'NUMERIC', 'mode': 'REQUIRED'},
+        {'name': 'is_res', 'type': 'BOOL', 'mode': 'REQUIRED'},
+        {'name': 'start_timestamp', 'type': 'NUMERIC', 'mode': 'REQUIRED'},
+        {'name': 'end_timestamp', 'type': 'NUMERIC', 'mode': 'REQUIRED'},
+        {'name': 'num_highs', 'type': 'NUMERIC', 'mode': 'REQUIRED'},
+        {'name': 'top', 'type': 'NUMERIC', 'mode': 'REQUIRED'},
+        {'name': 'bottom', 'type': 'NUMERIC', 'mode': 'REQUIRED'},
+        {'name': 'top_history', 'type': 'STRING', 'mode': 'REQUIRED'},
+    ],
+    'support': [
+        {'name': 'timestamp', 'type': 'NUMERIC', 'mode': 'REQUIRED'},
+        {'name': 'candle_timestamp', 'type': 'NUMERIC', 'mode': 'REQUIRED'},
+        {'name': 'is_sup', 'type': 'BOOL', 'mode': 'REQUIRED'},
+        {'name': 'start_timestamp', 'type': 'NUMERIC', 'mode': 'REQUIRED'},
+        {'name': 'end_timestamp', 'type': 'NUMERIC', 'mode': 'REQUIRED'},
+        {'name': 'num_lows', 'type': 'NUMERIC', 'mode': 'REQUIRED'},
+        {'name': 'top', 'type': 'NUMERIC', 'mode': 'REQUIRED'},
+        {'name': 'bottom', 'type': 'NUMERIC', 'mode': 'REQUIRED'},
+        {'name': 'bottom_history', 'type': 'STRING', 'mode': 'REQUIRED'},
+    ],
 }
 bq_hist_start = '2014-01-01'
 bq_hist_end = '2023-01-01'

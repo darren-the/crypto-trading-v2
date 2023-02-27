@@ -6,7 +6,7 @@ export const fetchCandles = (
   start,
   end
 ) => {
-  return axios.get(`${config.candles.url}?timeframe=${timeframe}&start=${start}&end=${end}`).then(response => {
+  return axios.get(`${config.base_url}${config.candles.path}?timeframe=${timeframe}&start=${start}&end=${end}`).then(response => {
     // Format candle data
     return response.data.data.map(element => {
       return {
