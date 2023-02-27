@@ -55,6 +55,7 @@ export const useCreateChart = () => {
       wickDownColor: '#3674d9',
       downColor: '#3674d9',
       borderVisible: false,
+      priceLineVisible: false,
     })
 
     const lowSeries = chart.addCandlestickSeries({})
@@ -64,6 +65,7 @@ export const useCreateChart = () => {
       wickDownColor: '#fccb19',
       downColor: '#fccb19',
       borderVisible: false,
+      priceLineVisible: false,
     })
 
     setSeriesState({ candleSeries, highSeries, lowSeries })

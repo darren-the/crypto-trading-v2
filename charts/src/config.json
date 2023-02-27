@@ -1,14 +1,21 @@
 {
+  "base_url": "http://localhost:5000",
   "candles": {
-    "url": "http://localhost:5000/candles",
+    "path": "/candles",
     "fetchWindow": 10000,
     "defaultVisibleWindow": 500
   },
   "highs": {
-    "url": "http://localhost:5000/highs"
+    "path": "/highs"
   },
   "lows": {
-    "url": "http://localhost:5000/lows"
+    "path": "/lows"
+  },
+  "resistance": {
+    "path": "/resistance"
+  },
+  "support": {
+    "path": "/support"
   },
   "timeframes": [
     "1m",

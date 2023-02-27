@@ -8,6 +8,7 @@ const Chart = () => {
   const [timeframe, setTimeframe] = useState(config.defaultTimeframe)
   const [timestamp, setTimestamp] = useState(null)
   const [toggleHighLow, setToggleHighLow] = useState(true)
+  const [toggleResSup, setToggleResSup] = useState(true)
 
   // Charting
   const { chart, chartRef, series } = useCreateChart()
@@ -16,7 +17,8 @@ const Chart = () => {
     series,
     timeframe,
     timestamp,
-    toggleHighLow
+    toggleHighLow,
+    toggleResSup,
   )
 
   // Function for inputting a date
@@ -40,6 +42,13 @@ const Chart = () => {
     if (toggleHighLow) setToggleHighLow(false)
     else setToggleHighLow(true)
   }
+
+  // Toggle res sup function
+  const toggleResSupClick = () => {
+    if (toggleResSup) setToggleResSup(false)
+    else setToggleResSup(true)
+  }
+
   return (
     <div>
       <div style={{width: 1600, height: 700}}ref={chartRef} />
@@ -52,6 +61,7 @@ const Chart = () => {
       {timeframeButtons}
       <div>current timeframe: {timeframe}</div>
       <button onClick={toggleHighLowClick}>Toggle highs and lows</button>
+      <button onClick={toggleResSupClick}>Toggle resistances and supports</button>
     </div>
   )
 }
