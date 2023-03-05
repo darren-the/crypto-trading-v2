@@ -12,5 +12,14 @@ steps:
       '--metadata-file', 'pipeline/metadata.json'
     ]
     waitFor: ['build_docker_image']
+  - name: 'gcr.io/cloud-builders/gcloud'
+    id: 'run_flex_template'
+    args: [
+      'dataflow', 'flex-template', 'run', 'pipeline',
+      '--template-file-gcs-location', 'gs://crypto-trading-v2-dataflow/pipeline.json',
+      '--parameters', 'write_dest=bigquery'
+    ]
+    waitFor: ['create_flex_template']
 images:
 - 'us-central1-docker.pkg.dev/crypto-trading-v2/dataflow/pipeline'
+  

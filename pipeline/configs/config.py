@@ -14,11 +14,11 @@ timeframes = [
     # '2D',
 ]
 table = {
-    'basecandles': 'base-candles',
     'aggregatecandles': 'candles',
     'highlow': 'high-low',
     'resistance': 'resistance',
     'support': 'support',
+    'rsi': 'rsi',
 }
 schema = {
     'basecandles': [
@@ -71,6 +71,11 @@ schema = {
         {'name': 'bottom', 'type': 'NUMERIC', 'mode': 'REQUIRED'},
         {'name': 'bottom_history', 'type': 'STRING', 'mode': 'REQUIRED'},
     ],
+    'rsi': [
+        {'name': 'timestamp', 'type': 'NUMERIC', 'mode': 'REQUIRED'},
+        {'name': 'candle_timestamp', 'type': 'NUMERIC', 'mode': 'REQUIRED'},
+        {'name': 'rsi', 'type': 'NUMERIC', 'mode': 'REQUIRED'},
+    ]
 }
 bq_hist_start = '2014-01-01'
 bq_hist_end = '2023-01-01'
