@@ -16,6 +16,7 @@ from steps.candles.aggregate_candles import AggregateCandles
 from steps.transformers.high_low import HighLow
 from steps.transformers.resistance import Resistance
 from steps.transformers.support import Support
+from steps.transformers.rsi import RSI
 
 # Other libraries
 import argparse
@@ -78,23 +79,30 @@ def run():
                         timeframe=timeframe,
                         write_dest=args.write_dest
                     )
-
-                    | Step(
-                        step=HighLow(pivot=5),
-                        symbol=symbol,
-                        timeframe=timeframe,
-                        write_dest=args.write_dest
-                    )
                 )
 
                 branch0 | Step(
+                    step=RSI(max_length=14),
+                    symbol=symbol,
+                    timeframe=timeframe,
+                    write_dest=args.write_dest
+                )
+
+                branch1 = branch0 | Step(
+                    step=HighLow(pivot=5),
+                    symbol=symbol,
+                    timeframe=timeframe,
+                    write_dest=args.write_dest
+                )
+
+                branch1 | Step(
                     step=Resistance(),
                     symbol=symbol,
                     timeframe=timeframe,
                     write_dest=args.write_dest
                 )
 
-                branch0 | Step(
+                branch1 | Step(
                     step=Support(),
                     symbol=symbol,
                     timeframe=timeframe,
