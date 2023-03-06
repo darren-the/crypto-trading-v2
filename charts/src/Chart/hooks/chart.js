@@ -1,10 +1,11 @@
-import { useEffect, useState, useRef } from 'react'
+import { useContext, useEffect } from 'react'
+import { MainContext } from '../../context'
 import { createChart } from 'lightweight-charts'
 
+
+
 export const useCreateChart = () => {
-  const chartRef = useRef()
-  const [chartState, setChartState] = useState(null)
-  const [seriesState, setSeriesState] = useState(null)
+  const { chartRef, setChart, setSeries } = useContext(MainContext)
 
   useEffect(() => {
     /* ==================== CHART OPTIONS ==================== */
@@ -13,14 +14,14 @@ export const useCreateChart = () => {
       width: chartRef.current.clientWidth,
       height: chartRef.current.clientHeight,
     })
-    setChartState(chart)
+    setChart(chart)
 
     // Adjust timescale to show hours and minutes
     chart.timeScale().applyOptions({
       timeVisible: true,
       shiftVisibleRangeOnNewBar: false,
     })
-		
+
     // Customizing the Crosshair
     chart.applyOptions({
       crosshair: {
@@ -43,7 +44,7 @@ export const useCreateChart = () => {
         },
       },
     })
-
+    
     /* ==================== SERIES OPTIONS ==================== */
 
     const candleSeries = chart.addCandlestickSeries({})
@@ -68,8 +69,7 @@ export const useCreateChart = () => {
       priceLineVisible: false,
     })
 
-    setSeriesState({ candleSeries, highSeries, lowSeries })
-
+    setSeries({ candleSeries, highSeries, lowSeries })
 
     /* ==================== RESIZE HANDLING ==================== */
 
@@ -82,8 +82,6 @@ export const useCreateChart = () => {
       chart.remove()
     }
 
-  // eslint-disable-next-line
-  }, [])  
-
-  return { chart: chartState, chartRef , series: seriesState }
+    // eslint-disable-next-line
+  }, [])
 }
