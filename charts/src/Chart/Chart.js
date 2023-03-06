@@ -1,25 +1,33 @@
-import { useState } from 'react'
-import { useCreateChart } from './hooks/useCreateChart'
-import { useUpdateSeries } from './hooks/useUpdateSeries'
+import { useCreateChart } from './hooks/chart'
+import { useTimestampTrigger, useTimeframeTrigger, useVisibleLogicalRangeTrigger, useVisibleTimeRangeTrigger } from './hooks/triggers'
+import { useUpdateSeries } from './hooks/series'
+import { useContext } from 'react'
+import { MainContext } from '../context'
 import config from '../config.json'
+import { useToggleHighsLows, useToggleResSup } from './hooks/toggles'
+
 
 const Chart = () => {
-  // Variables that trigger a render
-  const [timeframe, setTimeframe] = useState(config.defaultTimeframe)
-  const [timestamp, setTimestamp] = useState(null)
-  const [toggleHighLow, setToggleHighLow] = useState(true)
-  const [toggleResSup, setToggleResSup] = useState(true)
-
-  // Charting
-  const { chart, chartRef, series } = useCreateChart()
-  useUpdateSeries(
-    chart,
-    series,
+  const {
+    chartRef,
+    setTimestamp,
     timeframe,
-    timestamp,
+    setTimeframe,
     toggleHighLow,
+    setToggleHighLow,
     toggleResSup,
-  )
+    setToggleResSup,
+} = useContext(MainContext)
+  
+  // Charting
+  useCreateChart()
+  useTimestampTrigger()
+  useTimeframeTrigger()
+  useVisibleLogicalRangeTrigger()
+  useVisibleTimeRangeTrigger()
+  useToggleHighsLows()
+  useToggleResSup()
+  useUpdateSeries()
 
   // Function for inputting a date
   const submitDate = (e) => {
@@ -48,6 +56,7 @@ const Chart = () => {
     if (toggleResSup) setToggleResSup(false)
     else setToggleResSup(true)
   }
+
 
   return (
     <div>

@@ -33,5 +33,11 @@
     "4h": 14400000,
     "1D": 86400000
   },
-  "defaultTimeframe": "1h"
+  "defaultTimeframe": "1h",
+  "loadMode": {
+    "NONE": 0,
+    "TRUNCATE_ALL": 1,
+    "APPEND": 2,
+    "PREPEND": 3
+  }
 }
