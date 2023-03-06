@@ -17,9 +17,11 @@ function App() {
   const [support, setSupport] = useState([])
   const [toggleHighLow, setToggleHighLow] = useState(true)
   const [toggleResSup, setToggleResSup] = useState(true)
+  const [rsiChart, setRsiChart] = useState(null)
+  const [rsi, setRsi] = useState([])
 
   const variables = {
-    chartRef: useRef(),
+    mainChartRef: useRef(),
     chart,
     setChart,
     series,
@@ -56,6 +58,11 @@ function App() {
     supPriceLines: useRef([]),
     toggleResSup,
     setToggleResSup,
+    rsiChartRef: useRef(),
+    rsiChart, 
+    setRsiChart,
+    rsi,
+    setRsi,
   }
 
   return (

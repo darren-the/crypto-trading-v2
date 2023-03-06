@@ -70,7 +70,7 @@ export const fetchResistance = (
   )
 }
 
-export const fetchSupport= (
+export const fetchSupport = (
   timeframe,
   start,
   end
@@ -82,6 +82,26 @@ export const fetchSupport= (
         time: element[0] / 1000,
         time_ms: element[0],
         bottom_history: element[1].split(',').map(bottom => parseFloat(bottom))
+      }
+    })
+})
+  .catch(error => 
+    console.log(error)
+  )
+}
+
+export const fetchRsi = (
+  timeframe,
+  start,
+  end
+) => {
+  return axios.get(`${config.base_url}${config.rsi.path}?timeframe=${timeframe}&start=${start}&end=${end}`).then(response => {
+    // Format support data
+    return response.data.data.map(element => {
+      return {
+        time: element[0] / 1000,
+        time_ms: element[0],
+        value: element[1],
       }
     })
 })
