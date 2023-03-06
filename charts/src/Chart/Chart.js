@@ -1,15 +1,15 @@
-import { useCreateChart } from './hooks/chart'
+import { useCreateChart } from './hooks/createChart'
+import { useCreateSeries } from './hooks/createSeries'
 import { useTimestampTrigger, useTimeframeTrigger, useVisibleLogicalRangeTrigger, useVisibleTimeRangeTrigger } from './hooks/triggers'
-import { useUpdateSeries } from './hooks/series'
+import { useUpdateSeries } from './hooks/updateSeries'
 import { useContext } from 'react'
 import { MainContext } from '../context'
 import config from '../config.json'
 import { useToggleHighsLows, useToggleResSup } from './hooks/toggles'
 
-
 const Chart = () => {
   const {
-    chartRef,
+    mainChartRef,
     setTimestamp,
     timeframe,
     setTimeframe,
@@ -17,17 +17,25 @@ const Chart = () => {
     setToggleHighLow,
     toggleResSup,
     setToggleResSup,
-} = useContext(MainContext)
+    rsiChartRef,
+  } = useContext(MainContext)
   
-  // Charting
+  // Charts and series
   useCreateChart()
+  useCreateSeries()
+  useUpdateSeries()
+
+  // triggers
   useTimestampTrigger()
   useTimeframeTrigger()
   useVisibleLogicalRangeTrigger()
   useVisibleTimeRangeTrigger()
+
+  // toggles
   useToggleHighsLows()
   useToggleResSup()
-  useUpdateSeries()
+
+  // ============================================================================
 
   // Function for inputting a date
   const submitDate = (e) => {
@@ -57,10 +65,10 @@ const Chart = () => {
     else setToggleResSup(true)
   }
 
-
   return (
     <div>
-      <div style={{width: 1600, height: 700}}ref={chartRef} />
+      <div style={{ width: 1600, height: 550 }} ref={mainChartRef} />
+      <div style={{ width: 1600, height: 200 }} ref={rsiChartRef} />
       <form onSubmit={submitDate}>
         <label>
           Date

@@ -17,6 +17,9 @@
   "support": {
     "path": "/support"
   },
+  "rsi": {
+    "path": "/rsi"
+  },
   "timeframes": [
     "1m",
     "5m",

@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import config from '../../config.json'
-import { fetchCandles, fetchHighs, fetchLows, fetchResistance, fetchSupport } from '../../services/fetch_data'
+import { fetchCandles, fetchHighs, fetchLows, fetchResistance, fetchRsi, fetchSupport } from '../../services/fetch_data'
 import { useContext } from 'react'
 import { MainContext } from '../../context'
 
@@ -28,6 +28,8 @@ export const useUpdateSeries = () => {
     setResistance,
     support,
     setSupport,
+    rsi,
+    setRsi,
   } = useContext(MainContext)
 
   useEffect(() => {
@@ -78,6 +80,12 @@ export const useUpdateSeries = () => {
       setCandles(newCandles)
       series.candleSeries.setData(newCandles)
 
+      // update rsi
+      const rsiData = await fetchRsi(timeframe, start, end)
+      const newRsi = concatMethod(rsiData, rsi)
+      setRsi(newRsi)
+      series.rsiSeries.setData(newRsi)
+
       // update highs
       const highData = await fetchHighs(timeframe, start, end)
       const candleHighs = candleData.filter(candle => highData.includes(candle.time_ms))
@@ -123,5 +131,5 @@ export const useUpdateSeries = () => {
     updateSeries()
 
   // eslint-disable-next-line
-  }, [loadMode, candles])
+  }, [loadMode, candles, rsi])
 }
