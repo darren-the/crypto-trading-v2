@@ -52,6 +52,7 @@ export const useCreateSeries = () => {
     })
 
     setSeries({ candleSeries, highSeries, lowSeries, rsiSeries })
-
+    
+    // eslint-disable-next-line
   }, [chart, rsiChart])
 }
