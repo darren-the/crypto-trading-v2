@@ -1,20 +1,242 @@
 from flask import Flask, request
-from google.cloud import bigquery
-import pandas as pd
-import decimal
 from flask_cors import CORS
-import logging
+import psycopg2
+from psycopg2.extensions import register_adapter, AsIs
+from decimal import Decimal
 
 app = Flask(__name__)
 CORS(app)
-client = bigquery.Client()
+
+DEC2FLOAT = psycopg2.extensions.new_type(
+psycopg2.extensions.DECIMAL.values,
+'DEC2FLOAT',
+lambda value, curs: float(value) if value is not None else None)
+psycopg2.extensions.register_type(DEC2FLOAT)
+
+@app.route('/postgresql_test', methods=['GET'])
+def postgresql_test():
+    conn = psycopg2.connect(
+        host="db",
+        database="mydatabase",
+        user="myuser",
+        password="mypassword"
+    )
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT table_name FROM information_schema.tables
+    """)
+    table_names = cur.fetchall()
+    cur.close()
+    conn.close()
+
+    return {'table_names': table_names}
+
+@app.route('/exists', methods=['GET'])
+def table_exists():
+    args = request.args
+    table_name = args.get('table')
+
+    # Connect to the PostgreSQL database
+    conn = psycopg2.connect(
+        host="db",
+        database="mydatabase",
+        user="myuser",
+        password="mypassword"
+    )
+    cur = conn.cursor()
+
+    # Fetch data from table
+    cur.execute(f'''
+        SELECT EXISTS (
+            SELECT *
+            FROM information_schema.tables
+            WHERE table_name = '{table_name}'
+        );
+    ''')
+    query_result = cur.fetchall()
+
+    # Commit the transaction
+    conn.commit()
+
+    cur.close()
+    conn.close()
+
+    return {'data': query_result[0][0]}
+
+@app.route('/delete_table', methods=['GET'])
+def delete_table():
+    args = request.args
+    table_name = args.get('table')
+    pipeline_id = args.get('pipeline_id')
+
+    # Connect to the PostgreSQL database
+    conn = psycopg2.connect(
+        host="db",
+        database="mydatabase",
+        user="myuser",
+        password="mypassword"
+    )
+    cur = conn.cursor()
+
+    # Delete table(s)
+    if pipeline_id is None:
+        cur.execute(f'DROP TABLE IF EXISTS {table_name};')
+    else:
+        cur.execute(f'''
+            SELECT table_name
+            FROM information_schema.tables
+            WHERE table_name LIKE '%{pipeline_id}';
+        ''')
+        table_names_to_delete = cur.fetchall()
+        for table in table_names_to_delete:
+            cur.execute(f'DROP TABLE IF EXISTS {table[0]}')
+
+    # Commit the transaction
+    conn.commit()
+
+    cur.close()
+    conn.close()
+
+    if pipeline_id is None:
+        return f'Table \'{table_name}\' has been deleted'
+    else:
+        return table_names_to_delete
 
 
-@app.route('/candles', methods=['GET'])
-def candles():
+@app.route('/data/<table>', methods=['GET'])
+def data(table):
     # Require args
     args = request.args
-    required_args = ['timeframe', 'start', 'end']
+    required_args = ['start', 'end']
+    missing_args = []
+    for required_arg in required_args:
+        if args.get(required_arg) is None and not \
+            (required_arg == 'timeframe' and table[7:].lower() == 'base_candles'):  # exception for base candles
+            missing_args.append(required_arg)
+    if len(missing_args) > 0:
+        return {'error': 'Missing parameters: ' + str(missing_args)}, 400
+
+    # Connect to the PostgreSQL database
+    conn = psycopg2.connect(
+        host="db",
+        database="mydatabase",
+        user="myuser",
+        password="mypassword"
+    )
+    cur = conn.cursor()
+
+    # Fetch data from table
+    QUERY = f'''
+        SELECT *
+        FROM {table}
+        WHERE
+            timestamp >= {args.get('start')}
+            AND timestamp < {args.get('end')}
+        ORDER BY timestamp
+    '''
+    cur.execute(QUERY)
+    query_result = cur.fetchall()
+
+    # Commit the transaction
+    conn.commit()
+
+    cur.close()
+    conn.close()
+    return {'data': query_result}
+
+@app.route('/datarange', methods=['GET'])
+def datarange():
+    args = request.args
+    table_name = args.get('table')
+
+    # Connect to the PostgreSQL database
+    conn = psycopg2.connect(
+        host="db",
+        database="mydatabase",
+        user="myuser",
+        password="mypassword"
+    )
+    cur = conn.cursor()
+
+    # Fetch data from table
+    cur.execute(f'''
+        SELECT
+            COALESCE(MIN(timestamp), 0)
+            , COALESCE(MAX(timestamp), 0)
+        FROM {table_name}
+    ''')
+    query_result = cur.fetchall()
+
+    # Commit the transaction
+    conn.commit()
+
+    cur.close()
+    conn.close()
+
+    return {'data': query_result[0]}
+
+
+@app.route('/create_table', methods=['POST'])
+def create_table():
+    # Connect to the PostgreSQL database
+    conn = psycopg2.connect(
+        host="db",
+        database="mydatabase",
+        user="myuser",
+        password="mypassword"
+    )
+    cur = conn.cursor()
+
+    # Parse json data
+    data = request.get_json()
+
+    # Create a table
+    cur.execute(f'''
+        DROP TABLE IF EXISTS {data['table']};
+        CREATE TABLE {data['table']} ({','.join(data['schema'])});
+    ''')
+
+    # Commit the transaction
+    conn.commit()
+
+    cur.close()
+    conn.close()
+
+    return f'Table \'{data["table"]}\' has been created'
+
+@app.route('/insert', methods=['POST'])
+def insert():
+    # Connect to the PostgreSQL database
+    conn = psycopg2.connect(
+        host="db",
+        database="mydatabase",
+        user="myuser",
+        password="mypassword"
+    )
+    cur = conn.cursor()
+
+    # Parse json data
+    data = request.get_json()
+
+    # Insert values into table
+    cur.execute(f'''
+        INSERT INTO {data['table']}
+        VALUES {','.join(data['values'])};
+    ''')
+
+    # Commit the transaction
+    conn.commit()
+
+    cur.close()
+    conn.close()
+
+    return 'Values inserted'
+
+@app.route('/charts/candles', methods=['GET'])
+def chart_candles():
+    # Require args
+    args = request.args
+    required_args = ['symbol', 'timeframe', 'pipeline_id', 'start', 'end']
     missing_args = []
     for required_arg in required_args:
         if args.get(required_arg) is None:
@@ -22,6 +244,16 @@ def candles():
     if len(missing_args) > 0:
         return {'error': 'Missing parameters: ' + str(missing_args)}, 400
 
+    # Connect to the PostgreSQL database
+    conn = psycopg2.connect(
+        host="db",
+        database="mydatabase",
+        user="myuser",
+        password="mypassword"
+    )
+    cur = conn.cursor()
+
+    # Fetch data from table
     QUERY = f'''
         SELECT
             candle_timestamp
@@ -29,31 +261,37 @@ def candles():
             , close
             , high
             , low
-        FROM `crypto-trading-v2.BTCUSD.candles-{args.get('timeframe')}`
-        WHERE
-            timestamp >= {args.get('start')}
-            AND timestamp < {args.get('end')}
-        QUALIFY ROW_NUMBER() OVER (
-            PARTITION BY candle_timestamp
-            ORDER BY timestamp DESC
-        ) = 1
-        ORDER BY timestamp
-        LIMIT 10000
+        FROM (
+            SELECT
+                *
+                , ROW_NUMBER() OVER (
+                    PARTITION BY candle_timestamp
+                    ORDER BY timestamp DESC
+                ) AS row_number
+            FROM {args.get('symbol')}_candles_{args.get('timeframe')}_{args.get('pipeline_id')}
+            WHERE
+                candle_timestamp >= {args.get('start')}
+                AND candle_timestamp < {args.get('end')}
+        ) AS candles
+        WHERE row_number = 1 
+        ORDER BY candle_timestamp
     '''
-    job = client.query(QUERY)
-    try:
-        results = job.result()
-    except:
-        return {'error': job.errors}, 400
-    df = results.to_dataframe()
-    df = df.applymap(lambda x: float(x) if isinstance(x, decimal.Decimal) else x)
-    return {'data': df.values.tolist()}, 200
 
-@app.route('/highs', methods=['GET'])
-def highs():
+    cur.execute(QUERY)
+    query_result = cur.fetchall()
+
+    # Commit the transaction
+    conn.commit()
+
+    cur.close()
+    conn.close()
+    return {'data': query_result}
+
+@app.route('/charts/highs', methods=['GET'])
+def chart_highs():
     # Require args
     args = request.args
-    required_args = ['timeframe', 'start', 'end']
+    required_args = ['symbol', 'timeframe', 'pipeline_id', 'start', 'end']
     missing_args = []
     for required_arg in required_args:
         if args.get(required_arg) is None:
@@ -61,30 +299,51 @@ def highs():
     if len(missing_args) > 0:
         return {'error': 'Missing parameters: ' + str(missing_args)}, 400
 
+    # Connect to the PostgreSQL database
+    conn = psycopg2.connect(
+        host="db",
+        database="mydatabase",
+        user="myuser",
+        password="mypassword"
+    )
+    cur = conn.cursor()
+
+    # Fetch data from table
     QUERY = f'''
         SELECT high_timestamp
-        FROM `crypto-trading-v2.BTCUSD.high-low-{args.get('timeframe')}`
-        WHERE
-            timestamp >= {args.get('start')}
-            AND timestamp < {args.get('end')}
-            AND is_high = TRUE
-        ORDER BY timestamp
-        LIMIT 10000
+        FROM (
+            SELECT
+                high_timestamp
+                , candle_timestamp
+                , ROW_NUMBER() OVER (
+                    PARTITION BY candle_timestamp
+                    ORDER BY timestamp DESC
+                ) AS row_number
+            FROM {args.get('symbol')}_high_low_{args.get('timeframe')}_{args.get('pipeline_id')}
+            WHERE
+                candle_timestamp >= {args.get('start')}
+                AND candle_timestamp < {args.get('end')}
+                AND is_high = TRUE
+        ) AS highs
+        WHERE row_number = 1 
+        ORDER BY candle_timestamp
     '''
-    job = client.query(QUERY)
-    try:
-        results = job.result()
-    except:
-        return {'error': job.errors}, 400
-    df = results.to_dataframe()
-    df = df.applymap(lambda x: float(x) if isinstance(x, decimal.Decimal) else x)
-    return {'data': df.high_timestamp.values.tolist()}, 200
 
-@app.route('/lows', methods=['GET'])
-def lows():
+    cur.execute(QUERY)
+    query_result = cur.fetchall()
+
+    # Commit the transaction
+    conn.commit()
+
+    cur.close()
+    conn.close()
+    return {'data': query_result}
+
+@app.route('/charts/lows', methods=['GET'])
+def chart_lows():
     # Require args
     args = request.args
-    required_args = ['timeframe', 'start', 'end']
+    required_args = ['symbol', 'timeframe', 'pipeline_id', 'start', 'end']
     missing_args = []
     for required_arg in required_args:
         if args.get(required_arg) is None:
@@ -92,30 +351,51 @@ def lows():
     if len(missing_args) > 0:
         return {'error': 'Missing parameters: ' + str(missing_args)}, 400
 
+    # Connect to the PostgreSQL database
+    conn = psycopg2.connect(
+        host="db",
+        database="mydatabase",
+        user="myuser",
+        password="mypassword"
+    )
+    cur = conn.cursor()
+
+    # Fetch data from table
     QUERY = f'''
         SELECT low_timestamp
-        FROM `crypto-trading-v2.BTCUSD.high-low-{args.get('timeframe')}`
-        WHERE
-            timestamp >= {args.get('start')}
-            AND timestamp < {args.get('end')}
-            AND is_low = TRUE
-        ORDER BY timestamp
-        LIMIT 10000
+        FROM (
+            SELECT
+                low_timestamp
+                , candle_timestamp
+                , ROW_NUMBER() OVER (
+                    PARTITION BY candle_timestamp
+                    ORDER BY timestamp DESC
+                ) AS row_number
+            FROM {args.get('symbol')}_high_low_{args.get('timeframe')}_{args.get('pipeline_id')}
+            WHERE
+                candle_timestamp >= {args.get('start')}
+                AND candle_timestamp < {args.get('end')}
+                AND is_low = TRUE
+        ) AS lows
+        WHERE row_number = 1 
+        ORDER BY candle_timestamp
     '''
-    job = client.query(QUERY)
-    try:
-        results = job.result()
-    except:
-        return {'error': job.errors}, 400
-    df = results.to_dataframe()
-    df = df.applymap(lambda x: float(x) if isinstance(x, decimal.Decimal) else x)
-    return {'data': df.low_timestamp.values.tolist()}, 200
 
-@app.route('/resistance', methods=['GET'])
-def resistance():
+    cur.execute(QUERY)
+    query_result = cur.fetchall()
+
+    # Commit the transaction
+    conn.commit()
+
+    cur.close()
+    conn.close()
+    return {'data': query_result}
+
+@app.route('/charts/resistance', methods=['GET'])
+def chart_resistance():
     # Require args
     args = request.args
-    required_args = ['timeframe', 'start', 'end']
+    required_args = ['symbol', 'timeframe', 'pipeline_id', 'start', 'end']
     missing_args = []
     for required_arg in required_args:
         if args.get(required_arg) is None:
@@ -123,35 +403,52 @@ def resistance():
     if len(missing_args) > 0:
         return {'error': 'Missing parameters: ' + str(missing_args)}, 400
 
+    # Connect to the PostgreSQL database
+    conn = psycopg2.connect(
+        host="db",
+        database="mydatabase",
+        user="myuser",
+        password="mypassword"
+    )
+    cur = conn.cursor()
+
+    # Fetch data from table
     QUERY = f'''
         SELECT
             candle_timestamp
             , top_history
-        FROM `crypto-trading-v2.BTCUSD.resistance-{args.get('timeframe')}`
-        WHERE
-            timestamp >= {args.get('start')}
-            AND timestamp < {args.get('end')}
-        QUALIFY ROW_NUMBER() OVER (
-            PARTITION BY candle_timestamp
-            ORDER BY timestamp DESC
-        ) = 1
+        FROM (
+            SELECT
+                candle_timestamp
+                , top_history
+                , ROW_NUMBER() OVER (
+                    PARTITION BY candle_timestamp
+                    ORDER BY timestamp DESC
+                ) AS row_number
+            FROM {args.get('symbol')}_resistance_{args.get('timeframe')}_{args.get('pipeline_id')}
+            WHERE
+                candle_timestamp >= {args.get('start')}
+                AND candle_timestamp < {args.get('end')}
+        ) AS resistance
+        WHERE row_number = 1 
         ORDER BY candle_timestamp
-        LIMIT 10000
     '''
-    job = client.query(QUERY)
-    try:
-        results = job.result()
-    except:
-        return {'error': job.errors}, 400
-    df = results.to_dataframe()
-    df = df.applymap(lambda x: float(x) if isinstance(x, decimal.Decimal) else x)
-    return {'data': df.values.tolist()}, 200
 
-@app.route('/support', methods=['GET'])
-def support():
+    cur.execute(QUERY)
+    query_result = cur.fetchall()
+
+    # Commit the transaction
+    conn.commit()
+
+    cur.close()
+    conn.close()
+    return {'data': query_result}
+
+@app.route('/charts/support', methods=['GET'])
+def chart_support():
     # Require args
     args = request.args
-    required_args = ['timeframe', 'start', 'end']
+    required_args = ['symbol', 'timeframe', 'pipeline_id', 'start', 'end']
     missing_args = []
     for required_arg in required_args:
         if args.get(required_arg) is None:
@@ -159,35 +456,52 @@ def support():
     if len(missing_args) > 0:
         return {'error': 'Missing parameters: ' + str(missing_args)}, 400
 
+    # Connect to the PostgreSQL database
+    conn = psycopg2.connect(
+        host="db",
+        database="mydatabase",
+        user="myuser",
+        password="mypassword"
+    )
+    cur = conn.cursor()
+
+    # Fetch data from table
     QUERY = f'''
         SELECT
             candle_timestamp
             , bottom_history
-        FROM `crypto-trading-v2.BTCUSD.support-{args.get('timeframe')}`
-        WHERE
-            timestamp >= {args.get('start')}
-            AND timestamp < {args.get('end')}
-        QUALIFY ROW_NUMBER() OVER (
-            PARTITION BY candle_timestamp
-            ORDER BY timestamp DESC
-        ) = 1
+        FROM (
+            SELECT
+                candle_timestamp
+                , bottom_history
+                , ROW_NUMBER() OVER (
+                    PARTITION BY candle_timestamp
+                    ORDER BY timestamp DESC
+                ) AS row_number
+            FROM {args.get('symbol')}_support_{args.get('timeframe')}_{args.get('pipeline_id')}
+            WHERE
+                candle_timestamp >= {args.get('start')}
+                AND candle_timestamp < {args.get('end')}
+        ) AS support
+        WHERE row_number = 1 
         ORDER BY candle_timestamp
-        LIMIT 10000
     '''
-    job = client.query(QUERY)
-    try:
-        results = job.result()
-    except:
-        return {'error': job.errors}, 400
-    df = results.to_dataframe()
-    df = df.applymap(lambda x: float(x) if isinstance(x, decimal.Decimal) else x)
-    return {'data': df.values.tolist()}, 200
 
-@app.route('/rsi', methods=['GET'])
-def rsi():
+    cur.execute(QUERY)
+    query_result = cur.fetchall()
+
+    # Commit the transaction
+    conn.commit()
+
+    cur.close()
+    conn.close()
+    return {'data': query_result}
+
+@app.route('/charts/rsi', methods=['GET'])
+def chart_rsi():
     # Require args
     args = request.args
-    required_args = ['timeframe', 'start', 'end']
+    required_args = ['symbol', 'timeframe', 'pipeline_id', 'start', 'end']
     missing_args = []
     for required_arg in required_args:
         if args.get(required_arg) is None:
@@ -195,30 +509,47 @@ def rsi():
     if len(missing_args) > 0:
         return {'error': 'Missing parameters: ' + str(missing_args)}, 400
 
+    # Connect to the PostgreSQL database
+    conn = psycopg2.connect(
+        host="db",
+        database="mydatabase",
+        user="myuser",
+        password="mypassword"
+    )
+    cur = conn.cursor()
+
+    # Fetch data from table
     QUERY = f'''
         SELECT
             candle_timestamp
             , rsi
-        FROM `crypto-trading-v2.BTCUSD.rsi-{args.get('timeframe')}`
-        WHERE
-            timestamp >= {args.get('start')}
-            AND timestamp < {args.get('end')}
-        QUALIFY ROW_NUMBER() OVER (
-            PARTITION BY candle_timestamp
-            ORDER BY timestamp DESC
-        ) = 1
-        ORDER BY timestamp
-        LIMIT 10000
+        FROM (
+            SELECT
+                candle_timestamp
+                , rsi
+                , ROW_NUMBER() OVER (
+                    PARTITION BY candle_timestamp
+                    ORDER BY timestamp DESC
+                ) AS row_number
+            FROM {args.get('symbol')}_rsi_{args.get('timeframe')}_{args.get('pipeline_id')}
+            WHERE
+                candle_timestamp >= {args.get('start')}
+                AND candle_timestamp < {args.get('end')}
+        ) AS rsi
+        WHERE row_number = 1 
+        ORDER BY candle_timestamp
     '''
-    job = client.query(QUERY)
-    try:
-        results = job.result()
-    except:
-        return {'error': job.errors}, 400
-    df = results.to_dataframe()
-    df = df.applymap(lambda x: float(x) if isinstance(x, decimal.Decimal) else x)
-    return {'data': df.values.tolist()}, 200
+
+    cur.execute(QUERY)
+    query_result = cur.fetchall()
+
+    # Commit the transaction
+    conn.commit()
+
+    cur.close()
+    conn.close()
+    return {'data': query_result}
 
 
 if __name__ == '__main__':
-    app.run(host="0.0.0.0", debug=True)
+    app.run(host="0.0.0.0", port=4500, debug=True)

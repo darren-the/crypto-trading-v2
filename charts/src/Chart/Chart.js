@@ -6,6 +6,7 @@ import { useContext } from 'react'
 import { MainContext } from '../context'
 import config from '../config.json'
 import { useToggleHighsLows, useToggleResSup } from './hooks/toggles'
+import axios from 'axios'
 
 const Chart = () => {
   const {
@@ -65,10 +66,19 @@ const Chart = () => {
     else setToggleResSup(true)
   }
 
+  const test_fetch = () => {
+    console.log('hello world')
+    axios.get('http://localhost:4000/test').then(response => {
+      console.log(response.data)
+    }).catch(error => {
+      console.log(error)
+    })
+  }
+
   return (
     <div>
-      <div style={{ width: 1600, height: 550 }} ref={mainChartRef} />
-      <div style={{ width: 1600, height: 200 }} ref={rsiChartRef} />
+      <div style={{ width: 1600, height: 450 }} ref={mainChartRef} />
+      <div style={{ width: 1600, height: 150 }} ref={rsiChartRef} />
       <form onSubmit={submitDate}>
         <label>
           Date
@@ -79,6 +89,7 @@ const Chart = () => {
       <div>current timeframe: {timeframe}</div>
       <button onClick={toggleHighLowClick}>Toggle highs and lows</button>
       <button onClick={toggleResSupClick}>Toggle resistances and supports</button>
+      <button onClick={test_fetch}>test fetch</button>
     </div>
   )
 }

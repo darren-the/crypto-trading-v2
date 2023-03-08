@@ -30,6 +30,8 @@ export const useUpdateSeries = () => {
     setSupport,
     rsi,
     setRsi,
+    pipelineId,
+    symbol,
   } = useContext(MainContext)
 
   useEffect(() => {
@@ -58,7 +60,7 @@ export const useUpdateSeries = () => {
     }
 
     const updateSeries = async () => {
-      const candleData = await fetchCandles(timeframe, start, end)
+      const candleData = await fetchCandles(symbol, timeframe, pipelineId, start, end)
 
       // Check whether there is anymore data to be fetched
       if (candleData.length === 0) {
@@ -81,20 +83,20 @@ export const useUpdateSeries = () => {
       series.candleSeries.setData(newCandles)
 
       // update rsi
-      const rsiData = await fetchRsi(timeframe, start, end)
+      const rsiData = await fetchRsi(symbol, timeframe, pipelineId, start, end)
       const newRsi = concatMethod(rsiData, rsi)
       setRsi(newRsi)
       series.rsiSeries.setData(newRsi)
 
       // update highs
-      const highData = await fetchHighs(timeframe, start, end)
+      const highData = await fetchHighs(symbol, timeframe, pipelineId, start, end)
       const candleHighs = candleData.filter(candle => highData.includes(candle.time_ms))
       const newHighs = concatMethod(candleHighs, highs)
       setHighs(newHighs)
       series.highSeries.setData(newHighs)
 
       // fetch lows
-      const lowData = await fetchLows(timeframe, start, end)
+      const lowData = await fetchLows(symbol, timeframe, pipelineId, start, end)
       const candleLows = candleData.filter(candle => lowData.includes(candle.time_ms))
       const newLows = concatMethod(candleLows, lows)
       setLows(newLows)
@@ -116,12 +118,12 @@ export const useUpdateSeries = () => {
       })
 
       // update resistances
-      const resData = await fetchResistance(timeframe, start, end)
+      const resData = await fetchResistance(symbol, timeframe, pipelineId, start, end)
       const newRes = concatMethod(resData, resistance)
       setResistance(newRes)
 
       // update supports
-      const supData = await fetchSupport(timeframe, start, end)
+      const supData = await fetchSupport(symbol, timeframe, pipelineId, start, end)
       const newSup = concatMethod(supData, support)
       setSupport(newSup)
       
