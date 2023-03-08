@@ -19,6 +19,8 @@ function App() {
   const [toggleResSup, setToggleResSup] = useState(true)
   const [rsiChart, setRsiChart] = useState(null)
   const [rsi, setRsi] = useState([])
+  const [pipelineId, setPipelineId] = useState('main')
+  const [symbol, setSymbol] = useState('btcusd')
 
   const variables = {
     mainChartRef: useRef(),
@@ -63,6 +65,10 @@ function App() {
     setRsiChart,
     rsi,
     setRsi,
+    pipelineId,
+    setPipelineId,
+    symbol,
+    setSymbol,
   }
 
   return (
