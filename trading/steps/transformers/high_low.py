@@ -1,11 +1,14 @@
-import apache_beam as beam
+from pipeline.task import Task
 import numpy as np
 from scipy.stats import spearmanr
 from copy import deepcopy
 
 
-class HighLow(beam.DoFn):
-    def __init__(self, pivot=5):
+class HighLow(Task):
+    def __init__(self, symbol, timeframe, write_output=False, pivot=5):
+        self.symbol = symbol
+        self.timeframe = timeframe
+        self.write_output = write_output
         self.pivot = pivot
         self.current_candles = []
         self.high_low = {
@@ -21,6 +24,7 @@ class HighLow(beam.DoFn):
             'low_bottom': -1
         }
         self.alpha = 0
+        super().__init__()
 
     def process(self, element):
         self.high_low['timestamp'] = element['timestamp']
@@ -56,7 +60,7 @@ class HighLow(beam.DoFn):
                         self.high_low['is_high'] = True
                     self.alpha = new_alpha
         
-        yield deepcopy(self.high_low)
+        return deepcopy(self.high_low)
     
     def _calculate_alpha(self):
         base_alpha = spearmanr(np.arange(self.pivot), [candle['close'] for candle in self.current_candles])[0]

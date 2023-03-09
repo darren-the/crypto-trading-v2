@@ -1,4 +1,7 @@
-class Source:
+from pipeline.base.task_overloader import TaskOverloader
+
+
+class Source(TaskOverloader):
     def __init__(self):
         self.output_element = None
         self.output_tasks = []
@@ -12,8 +15,4 @@ class Source:
             self.output_element = element
             for output_op in self.output_tasks:
                 output_op.kill_all() if element is None else output_op.activate()
-
-    def __rshift__(self, other):
-        self.output_tasks.append(other)
-        other.input_tasks.append(self)
-        return other
+                

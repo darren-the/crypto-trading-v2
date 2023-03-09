@@ -1,22 +1,25 @@
 from configs import config
 import os
+from pipeline.base.task_overloader import TaskOverloader
 
-class Task:
+
+class Task(TaskOverloader):
     def __init__(self):
         self.output_element = None
         self.input_tasks = []
         self.output_tasks = []
-
+        self.file = None
         self.op_id = f'{self.symbol}.{config.table[str(type(self).__name__).lower()]}-{self.timeframe}'
-        if self.write_output:
-            if not os.path.exists(config.local_env_data):
-                os.mkdir(config.local_env_data)
-            self.file = open(f'{config.local_env_data}/{self.op_id}', 'w')
     
     def process(self, element):
         return element
 
     def activate(self):
+        if self.file is None:
+            if self.write_output:
+                if not os.path.exists(config.local_env_data):
+                    os.mkdir(config.local_env_data)
+                self.file = open(f'{config.local_env_data}/{self.op_id}', 'w')
         input_elements = {}
         for input_op in self.input_tasks:
             if input_op.output_element is None \
@@ -37,8 +40,3 @@ class Task:
         self.file.close()
         for output_op in self.output_tasks:
             output_op.kill_all()
-
-    def __rshift__(self, other):
-        self.output_tasks.append(other)
-        other.input_tasks.append(self)
-        return other

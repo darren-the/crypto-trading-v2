@@ -29,11 +29,39 @@ def run():
                 write_output=True
             )
 
+            high_low = HighLow(
+                symbol=symbol,
+                timeframe=timeframe,
+                write_output=True,
+                pivot=5,
+            )
+
+            rsi = RSI(
+                symbol=symbol,
+                timeframe=timeframe,
+                write_output=True,
+                max_length=14
+            )
+
+            resistance = Resistance(
+                symbol=symbol,
+                timeframe=timeframe,
+                write_output=True,
+                history_length=10
+            )
+
+            support = Support(
+                symbol=symbol,
+                timeframe=timeframe,
+                write_output=True,
+                history_length=10
+            )
+
             # Organise dependencies
-            fetch_candles >> aggregate_candles
+            fetch_candles >> aggregate_candles >> [high_low, rsi]
+            high_low >> [resistance, support]
     
     fetch_candles.activate()
-                
 
 if __name__ == '__main__':
     run()
