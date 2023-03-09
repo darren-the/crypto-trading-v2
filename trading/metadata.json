@@ -1,0 +1,11 @@
+{
+    "name": "Candlestick dataflow pipeline",
+    "description": "A Dataflow pipeline for fetching candlestick data and applying transformations",
+    "parameters": [
+        {
+            "name": "write_dest",
+            "label": "Write destination",
+            "helpText": "Write destination of pipeline output e.g. text or bigquery"
+        }
+    ]
+}
