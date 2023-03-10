@@ -11,9 +11,10 @@ class FetchCandles(Source):
     """
     A DoFn class for fetching candlestick data from the bitfinex API.
     """
-    def __init__(self,  start_date: str, end_date: str):
-        self.url = config.bitfinex['candles']['base_url']
-        self.limit = config.bitfinex['candles']['max_data_per_req']
+    def __init__(self, symbol: str, start_date: str, end_date: str):
+        self.symbol = symbol
+        self.url = config.bitfinex['candle_url'][symbol]
+        self.limit = config.bitfinex['max_data_per_req']
         self.interval = timeframe_to_ms('1m')
         self.start = date_str_to_timestamp(start_date)
         self.end = date_str_to_timestamp(end_date) - self.interval
@@ -70,17 +71,7 @@ class FetchCandles(Source):
                 yield element
 
             # Calculate length of time delay to not breach req limit
-            delay = self._get_delay()
+            delay = 60 / config.bitfinex['max_req_per_min']
             time.sleep(delay)
         
         yield None
-
-    def _get_delay(self):
-        num_reqs = ceil((self.end - self.start)
-            / self.interval / self.limit) * len(config.symbols) * len(config.timeframes)
-        
-        if num_reqs <= self.limit:
-            return 0
-        
-        else:
-            return (60 / self.limit) * len(config.symbols) * len(config.timeframes)

@@ -17,51 +17,59 @@ import logging
 
 
 def run():
-    # Defining source
-    fetch_candles = FetchCandles(config.local_hist_start, config.local_hist_end)
+    fetch_candles = {}
+    for s in config.symbols:
+        fetch_candles[s] = FetchCandles(s, config.local_hist_start, config.local_hist_end)
 
-    for symbol in config.symbols:
-        for timeframe in config.timeframes:
+        # Base tasks objects
+        aggregate_candles = {s: {}}
+        high_low = {s: {}}
+        rsi = {s: {}}
+        resistance = {s: {}}
+        support = {s: {}}
+
+        for t in config.timeframes:
             # Defining tasks
-            aggregate_candles = AggregateCandles(
-                symbol=symbol,
-                timeframe=timeframe,
+            aggregate_candles[s][t] = AggregateCandles(
+                symbol=s,
+                timeframe=t,
                 write_output=True
             )
 
-            high_low = HighLow(
-                symbol=symbol,
-                timeframe=timeframe,
+            high_low[s][t] = HighLow(
+                symbol=s,
+                timeframe=t,
                 write_output=True,
                 pivot=5,
             )
 
-            rsi = RSI(
-                symbol=symbol,
-                timeframe=timeframe,
+            rsi[s][t] = RSI(
+                symbol=s,
+                timeframe=t,
                 write_output=True,
                 max_length=14
             )
 
-            resistance = Resistance(
-                symbol=symbol,
-                timeframe=timeframe,
+            resistance[s][t] = Resistance(
+                symbol=s,
+                timeframe=t,
                 write_output=True,
                 history_length=10
             )
 
-            support = Support(
-                symbol=symbol,
-                timeframe=timeframe,
+            support[s][t] = Support(
+                symbol=s,
+                timeframe=t,
                 write_output=True,
                 history_length=10
             )
 
             # Organise dependencies
-            fetch_candles >> aggregate_candles >> [high_low, rsi]
-            high_low >> [resistance, support]
+            fetch_candles[s] >> aggregate_candles[s][t] >> [high_low[s][t], rsi[s][t]]
+            high_low[s][t] >> [resistance[s][t], support[s][t]]
     
-    fetch_candles.activate()
+    for s in config.symbols:
+        fetch_candles[s].activate()
 
 if __name__ == '__main__':
     run()

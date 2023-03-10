@@ -85,9 +85,9 @@ local_hist_start = '2022-01-01'
 local_hist_end = '2022-02-01'
 bitfinex = {
     'base_url': 'https://api-pub.bitfinex.com/v2',
-    'candles': {
-        'base_url': 'https://api-pub.bitfinex.com/v2/candles/trade:1m:tBTCUSD/hist',
-        'max_data_per_req': 10000,
-        'max_req_per_min': 90,
+    'candle_url': {
+        'BTCUSD': 'https://api-pub.bitfinex.com/v2/candles/trade:1m:tBTCUSD/hist'
     },
+    'max_data_per_req': 10000,
+    'max_req_per_min': 90,
 }
