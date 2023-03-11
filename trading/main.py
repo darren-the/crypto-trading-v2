@@ -10,10 +10,7 @@ from steps.transformers.high_low import HighLow
 from steps.transformers.resistance import Resistance
 from steps.transformers.support import Support
 from steps.transformers.rsi import RSI
-
-# Other libraries
-import argparse
-import logging
+from steps.transformers.retracement import Retracement
 
 
 def run():
@@ -27,6 +24,7 @@ def run():
         rsi = {s: {}}
         resistance = {s: {}}
         support = {s: {}}
+        retracement = {s: {}}
 
         for t in config.timeframes:
             # Defining tasks
@@ -62,6 +60,12 @@ def run():
                 timeframe=t,
                 write_output=True,
                 history_length=10
+            )
+
+            retracement[s][t] = Retracement(
+                symbol=s,
+                timeframe=t,
+                write_output=True,
             )
 
             # Organise dependencies

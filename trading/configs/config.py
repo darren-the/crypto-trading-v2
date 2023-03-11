@@ -21,6 +21,7 @@ table = {
     'resistance': 'resistance',
     'support': 'support',
     'rsi': 'rsi',
+    'retracement': 'retracement',
 }
 schema = {
     'basecandles': [
@@ -77,6 +78,11 @@ schema = {
         {'name': 'timestamp', 'type': 'NUMERIC', 'mode': 'REQUIRED'},
         {'name': 'candle_timestamp', 'type': 'NUMERIC', 'mode': 'REQUIRED'},
         {'name': 'rsi', 'type': 'NUMERIC', 'mode': 'REQUIRED'},
+    ],
+    'retracement': [
+        {'name': 'timestamp', 'type': 'NUMERIC', 'mode': 'REQUIRED'},
+        {'name': 'high_retracement', 'type': 'NUMERIC', 'mode': 'REQUIRED'},
+        {'name': 'low_retracement', 'type': 'NUMERIC', 'mode': 'REQUIRED'},
     ]
 }
 bq_hist_start = '2014-01-01'
