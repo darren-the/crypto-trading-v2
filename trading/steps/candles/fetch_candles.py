@@ -18,6 +18,7 @@ class FetchCandles(Source):
         self.interval = timeframe_to_ms('1m')
         self.start = date_str_to_timestamp(start_date)
         self.end = date_str_to_timestamp(end_date) - self.interval
+        self.total = (self.end - self.start) / self.interval
         self.last_candle = None
         super().__init__()
 
