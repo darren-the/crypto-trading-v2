@@ -68,7 +68,7 @@ const Chart = () => {
 
   const test_fetch = () => {
     console.log('hello world')
-    axios.get('http:/localhost:4000/test').then(response => {
+    axios.get('http://localhost:4000/test').then(response => {
       console.log(response.data)
     }).catch(error => {
       console.log(error)
