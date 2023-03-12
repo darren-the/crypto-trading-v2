@@ -26,19 +26,16 @@ services:
     volumes:
       - ./trading:/app
 
-  # db:
-  #   image: postgres
-  #   container_name: database_container
-  #   restart: always
-  #   volumes:
-  #     - ./pgdata:/var/lib/postgresql/data
-  #   environment:
-  #     POSTGRES_USER: myuser
-  #     POSTGRES_PASSWORD: mypassword
-  #     POSTGRES_DB: mydatabase
-  #   ports:
-  #     - "5432:5432"
-  
-  
-
-  
+  db:
+    image: postgres
+    container_name: database_container
+    restart: always
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: mypassword
+      POSTGRES_DB: mydatabase
+    ports:
+      - "5432:5432"
+      

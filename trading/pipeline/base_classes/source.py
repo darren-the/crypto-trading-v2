@@ -23,14 +23,13 @@ class Source(TaskOverloader):
 
         env_type = os.getenv('ENV_TYPE')
         if env_type == 'dev':
-            # requests.post(
-            #     url=f'{config.api_base_url}/create_table',
-            #     data={
-            #         'table_name': self.table_name,
-            #         'schema': self.schema,
-            #     }
-            # )
-            pass
+            requests.post(
+                url=f'{config.api_base_url}/create_table',
+                data={
+                    'table_name': self.table_name,
+                    'schema': self.schema,
+                }
+            )
 
         for element in self.generate():
             self.output_element = element

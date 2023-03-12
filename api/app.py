@@ -6,11 +6,30 @@ app = Flask(__name__)
 CORS(app)
 
 
+@app.route('/postgresql_test', methods=['GET'])
+def postgresql_test():
+    conn = psycopg2.connect(
+        host="db",
+        database="mydatabase",
+        user="myuser",
+        password="mypassword"
+    )
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT table_name FROM information_schema.tables
+    """)
+    table_names = cur.fetchall()
+    cur.close()
+    conn.close()
+
+    return {'table_names': table_names}
+
+
 @app.route('/pipeline/create_table', methods=['POST'])
 def create_table():
     # Connect to the PostgreSQL database
     conn = psycopg2.connect(
-        host="172.18.0.3",
+        host="db",
         database="mydatabase",
         user="myuser",
         password="mypassword"
@@ -18,40 +37,27 @@ def create_table():
     cur = conn.cursor()
 
     # Parse json data
-    result = request.get_json()
-    print(result)
+    data = request.get_json()
 
     # Create a table
-    # cur.execute(f"""
-    #     DROP TABLE IF EXISTS base_candles;
-    #     CREATE TABLE base_candles (
-    #         timestamp NUMERIC PRIMARY KEY,
-    #         open NUMERIC NOT NULL,
-    #         close NUMERIC NOT NULL,
-    #         high NUMERIC NOT NULL,
-    #         low NUMERIC NOT NULL
-    #     );
-    # """)
+    cur.execute(f"""
+        DROP TABLE IF EXISTS {data['table_name']};
+        CREATE TABLE base_candles ({','.join(data['schema'])});
+    """)
 
-    # cur.execute("""
-    #     SELECT table_name FROM information_schema.tables
-    # """)
+    cur.execute("""
+        SELECT table_name FROM information_schema.tables
+    """)
+    table_names = cur.fetchall() 
 
-    # x = cur.fetchall()
-    # print(x)    
-
-    
-    # # Commit the transaction
-    # conn.commit()
+    # Commit the transaction
+    conn.commit()
 
     cur.close()
     conn.close()
 
-    return 'hi'
+    return {'table_names': table_names}
 
-@app.route('/test', methods=['GET'])
-def test():
-    return 'test succeeded!'
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=4500, debug=True)

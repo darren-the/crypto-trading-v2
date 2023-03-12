@@ -99,4 +99,4 @@ bitfinex = {
     'max_req_per_min': 90,
 }
 max_write_batch_size = 10_000
-api_base_url = 'http://localhost:4500/pipeline'
+api_base_url = 'http://api:4500/pipeline'
