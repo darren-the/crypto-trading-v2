@@ -1,5 +1,5 @@
-from pipeline.task import Task
-from utils.utils import timeframe_to_ms
+from pipeline.base_classes.task import Task
+from pipeline.utils.utils import timeframe_to_ms
 from copy import deepcopy
 
 class AggregateCandles(Task):

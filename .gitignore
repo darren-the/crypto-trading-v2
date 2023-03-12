@@ -5,8 +5,6 @@ build
 service_account_key.json
 
 # ===================== PIPELINE =====================
-pipeline/data
-pipeline/past_reqs.json
 trading/data
 
 
@@ -32,3 +30,6 @@ charts/.env.production.local
 charts/npm-debug.log*
 charts/yarn-debug.log*
 charts/yarn-error.log*
+
+# POSTGRESQL DATABASE
+pgdata

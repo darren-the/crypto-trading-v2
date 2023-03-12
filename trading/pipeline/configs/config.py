@@ -16,6 +16,7 @@ timeframes = [
 base_timeframe = '1m'
 base_ms = 60_000
 table = {
+    'fetchcandles': 'base_candles',
     'aggregatecandles': 'candles',
     'highlow': 'high-low',
     'resistance': 'resistance',
@@ -24,12 +25,12 @@ table = {
     'retracement': 'retracement',
 }
 schema = {
-    'basecandles': [
-        {'name': 'timestamp', 'type': 'NUMERIC', 'mode': 'REQUIRED'},
-        {'name': 'open', 'type': 'NUMERIC', 'mode': 'REQUIRED'},
-        {'name': 'close', 'type': 'NUMERIC', 'mode': 'REQUIRED'},
-        {'name': 'high', 'type': 'NUMERIC', 'mode': 'REQUIRED'},
-        {'name': 'low', 'type': 'NUMERIC', 'mode': 'REQUIRED'},
+    'fetchcandles': [
+        'timestamp NUMERIC PRIMARY KEY',
+        'open NUMERIC NOT NULL',
+        'close NUMERIC NOT NULL',
+        'high NUMERIC NOT NULL',
+        'low NUMERIC NOT NULL',
     ],
     'aggregatecandles': [
         {'name': 'timestamp', 'type': 'NUMERIC', 'mode': 'REQUIRED'},
@@ -97,3 +98,5 @@ bitfinex = {
     'max_data_per_req': 10000,
     'max_req_per_min': 90,
 }
+max_write_batch_size = 10_000
+api_base_url = 'http://localhost:4500/pipeline'

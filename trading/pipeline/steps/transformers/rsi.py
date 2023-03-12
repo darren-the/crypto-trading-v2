@@ -1,4 +1,4 @@
-from pipeline.task import Task
+from pipeline.base_classes.task import Task
 
 
 # Relative Strength Index calculation. Source: https://www.investopedia.com/terms/r/rsi.asp

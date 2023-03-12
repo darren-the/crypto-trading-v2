@@ -1,4 +1,4 @@
-from pipeline.task import Task
+from pipeline.base_classes.task import Task
 import numpy as np
 from scipy.stats import spearmanr
 from copy import deepcopy

@@ -1,9 +1,8 @@
 import requests
-from utils.utils import date_str_to_timestamp, timeframe_to_ms
-from configs import config
-from math import ceil
+from pipeline.utils.utils import date_str_to_timestamp, timeframe_to_ms
+from pipeline.configs import config
 import time
-from pipeline.source import Source
+from pipeline.base_classes.source import Source
 from copy import deepcopy
 
 

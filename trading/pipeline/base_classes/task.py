@@ -1,6 +1,6 @@
-from configs import config
+from pipeline.configs import config
 import os
-from pipeline.base.task_overloader import TaskOverloader
+from pipeline.base_classes.task_overloader import TaskOverloader
 
 
 class Task(TaskOverloader):
@@ -9,7 +9,7 @@ class Task(TaskOverloader):
         self.input_tasks = []
         self.output_tasks = []
         self.file = None
-        self.op_id = f'{self.symbol}.{config.table[str(type(self).__name__).lower()]}-{self.timeframe}'
+        self.task_id = f'{self.symbol}.{config.table[str(type(self).__name__).lower()]}-{self.timeframe}'
     
     def process(self, element):
         return element
@@ -19,7 +19,7 @@ class Task(TaskOverloader):
             if self.write_output:
                 if not os.path.exists(config.local_env_data):
                     os.mkdir(config.local_env_data)
-                self.file = open(f'{config.local_env_data}/{self.op_id}', 'w')
+                self.file = open(f'{config.local_env_data}/{self.task_id}', 'w')
         input_elements = {}
         for input_op in self.input_tasks:
             if input_op.output_element is None \
@@ -36,7 +36,7 @@ class Task(TaskOverloader):
     
     def kill_all(self):
         self.output_element = None
-        print(f'killing {self.op_id}')
+        print(f'killing {self.task_id}')
         self.file.close()
         for output_op in self.output_tasks:
             output_op.kill_all()

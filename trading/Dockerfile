@@ -1,13 +1,6 @@
-FROM gcr.io/dataflow-templates-base/python3-template-launcher-base
-
-WORKDIR /app
-
-COPY pipeline/. .
-
-ENV FLEX_TEMPLATE_PYTHON_PY_FILE="/app/pipeline.py"
-ENV FLEX_TEMPLATE_PYTHON_SETUP_FILE="/app/setup.py"
-ENV FLEX_TEMPLATE_PYTHON_REQUIREMENTS_FILE=""
-ENV FLEX_TEMPLATE_PYTHON_PY_OPTIONS=""
-ENV FLEX_TEMPLATE_PYTHON_EXTRA_PACKAGES=""
-
-RUN pip install .
+FROM python:3.9.13
+ARG WORKDIR=/app
+WORKDIR ${WORKDIR}
+COPY . .
+RUN pip install -r requirements.txt
+CMD python app.py

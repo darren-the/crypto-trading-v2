@@ -1,19 +1,19 @@
 # Config variables and utils
-from configs import config
+from pipeline.configs import config
 
 # Import candle steps
-from steps.candles.fetch_candles import FetchCandles
-from steps.candles.aggregate_candles import AggregateCandles
+from pipeline.steps.candles.fetch_candles import FetchCandles
+from pipeline.steps.candles.aggregate_candles import AggregateCandles
 
 # Import transformers
-from steps.transformers.high_low import HighLow
-from steps.transformers.resistance import Resistance
-from steps.transformers.support import Support
-from steps.transformers.rsi import RSI
-from steps.transformers.retracement import Retracement
+from pipeline.steps.transformers.high_low import HighLow
+from pipeline.steps.transformers.resistance import Resistance
+from pipeline.steps.transformers.support import Support
+from pipeline.steps.transformers.rsi import RSI
+from pipeline.steps.transformers.retracement import Retracement
 
 
-def run():
+def run_pipeline():
     fetch_candles = {}
     for s in config.symbols:
         fetch_candles[s] = FetchCandles(s, config.local_hist_start, config.local_hist_end)
@@ -74,6 +74,3 @@ def run():
     
     for s in config.symbols:
         fetch_candles[s].activate()
-
-if __name__ == '__main__':
-    run()

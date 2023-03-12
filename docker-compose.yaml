@@ -4,7 +4,7 @@ services:
     build: ./api
     container_name: api_container
     ports:
-      - "5000:5000"
+      - "4500:4500"
     volumes:
       - ./api:/app
 
@@ -15,4 +15,30 @@ services:
       - "3000:3000"
     volumes:
       - ./charts:/app
+
+  trading:
+    build: ./trading
+    container_name: trading_container
+    environment:
+      "ENV_TYPE": "dev"
+    ports:
+      - "4000:4000"
+    volumes:
+      - ./trading:/app
+
+  # db:
+  #   image: postgres
+  #   container_name: database_container
+  #   restart: always
+  #   volumes:
+  #     - ./pgdata:/var/lib/postgresql/data
+  #   environment:
+  #     POSTGRES_USER: myuser
+  #     POSTGRES_PASSWORD: mypassword
+  #     POSTGRES_DB: mydatabase
+  #   ports:
+  #     - "5432:5432"
+  
+  
+
   

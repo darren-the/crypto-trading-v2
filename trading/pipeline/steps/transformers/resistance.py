@@ -1,4 +1,4 @@
-from pipeline.task import Task
+from pipeline.base_classes.task import Task
 from copy import deepcopy
 
 
