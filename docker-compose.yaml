@@ -16,11 +16,18 @@ services:
     volumes:
       - ./charts:/app
 
+  redis:
+    image: redis:7.0.9
+    ports:
+      - "6379:6379"
+
   trading:
     build: ./trading
     container_name: trading_container
     environment:
-      "ENV_TYPE": "dev"
+      ENV_TYPE: "dev"
+    depends_on:
+      - redis
     ports:
       - "4000:4000"
     volumes:
