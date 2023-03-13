@@ -1,7 +1,9 @@
 from flask import Flask
 from flask_cors import CORS
 from pipeline.pipeline import run_pipeline
-from celery import Celery, Task
+from celery import Celery, Task, shared_task
+from celery.result import AsyncResult
+
 
 def celery_init_app(app: Flask) -> Celery:
     class FlaskTask(Task):
@@ -18,19 +20,32 @@ def celery_init_app(app: Flask) -> Celery:
 app = Flask(__name__)
 app.config.from_mapping(
     CELERY=dict(
-        broker_url='redis://localhost',
-        result_backend='redis://localhost',
+        broker_url='redis://redis',
+        result_backend='redis://redis',
         task_ignore_result=True,
     ),
 )
 celery_app = celery_init_app(app)
 CORS(app)
 
+@shared_task(ignore_result=False)
+def add_together(a, b):
+    return a + b
+
 @app.route('/run', methods=['GET'])
 def run():
-    run_pipeline()
-    
-    return {'status': 'pipeline has finished'}
+    result = add_together.delay(10, 25)
+    return {'result_id': result.id}
+
+@app.route("/result/<id>", methods=['GET'])
+def task_result(id: str) -> dict[str, object]:
+    result = AsyncResult(id)
+    return {
+        "ready": result.ready(),
+        "successful": result.successful(),
+        "value": result.result if result.ready() else None,
+    }
+
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=4000, debug=True)

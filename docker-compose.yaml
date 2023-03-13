@@ -33,6 +33,15 @@ services:
     volumes:
       - ./trading:/app
 
+  trading-worker:
+    build: ./trading
+    container_name: trading_worker_container
+    command: celery -A app.celery worker --loglevel=info
+    depends_on:
+      - redis
+    volumes:
+      - ./trading:/app
+
   db:
     image: postgres
     container_name: database_container
