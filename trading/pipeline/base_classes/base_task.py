@@ -1,6 +1,6 @@
-class TaskOverloader:
+class BaseTask:
     def __rshift__(self, other):
-        if TaskOverloader in other.__class__.__mro__:
+        if BaseTask in other.__class__.__mro__:
             self.output_tasks.append(other)
             other.input_tasks.append(self)
         elif type(other) == list:
@@ -15,3 +15,4 @@ class TaskOverloader:
                 input_task.output_tasks.append(self)
                 self.input_tasks.append(input_task)
             return self
+        
