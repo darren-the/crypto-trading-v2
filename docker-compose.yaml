@@ -33,10 +33,13 @@ services:
     volumes:
       - ./trading:/app
 
-  trading-worker:
+  worker:
     build: ./trading
-    container_name: trading_worker_container
-    command: celery -A app.celery worker --loglevel=info
+    hostname: worker
+    container_name: worker_container
+    command: celery -A celery worker --loglevel=info
+    environment:
+      CELERY_BROKER_URL: redis://redis:6379/0
     depends_on:
       - redis
     volumes:
