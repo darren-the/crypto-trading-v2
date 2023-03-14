@@ -7,9 +7,6 @@ from copy import deepcopy
 
 
 class FetchCandles(Source):
-    """
-    A DoFn class for fetching candlestick data from the bitfinex API.
-    """
     def __init__(self, symbol: str, start_date: str, end_date: str):
         self.symbol = symbol
         self.url = config.bitfinex['candle_url'][symbol]

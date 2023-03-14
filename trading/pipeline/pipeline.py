@@ -16,7 +16,7 @@ from pipeline.steps.transformers.retracement import Retracement
 def run():
     fetch_candles = {}
     for s in config.symbols:
-        fetch_candles[s] = FetchCandles(s, config.local_hist_start, config.local_hist_end)
+        fetch_candles[s] = FetchCandles(s, config.dev_hist_start, config.dev_hist_end)
 
         # Base tasks objects
         aggregate_candles = {s: {}}
@@ -69,8 +69,8 @@ def run():
             )
 
             # Organise dependencies
-            fetch_candles[s] >> aggregate_candles[s][t] >> [high_low[s][t], rsi[s][t]]
-            high_low[s][t] >> [resistance[s][t], support[s][t]]
+            # fetch_candles[s] >> aggregate_candles[s][t] >> [high_low[s][t], rsi[s][t]]
+            # high_low[s][t] >> [resistance[s][t], support[s][t]]
     
     for s in config.symbols:
         fetch_candles[s].activate()

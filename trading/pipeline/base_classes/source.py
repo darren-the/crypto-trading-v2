@@ -40,6 +40,14 @@ class Source(BaseTask):
             )
 
         for element in self.generate():
+            if element is not None and self.output_element is not None \
+                and element['timestamp'] != self.output_element['timestamp'] + config.base_ms:
+                raise Exception(
+                    f'''
+                    Error: expected timestamp {str(self.output_element["timestamp"] + config.base_ms)} 
+                    but received {str(self.element['timestamp'])}
+                    '''
+                )
             self.output_element = element
             
             # write output to database
@@ -66,11 +74,12 @@ class Source(BaseTask):
                 self.percent_complete = next_percent_complete
     
     def _post_data(self):
-        requests.post(
-            url=f'{config.api_base_url}/insert',
-            json={
-                'table': self.table,
-                'values': self.write_batch
-            }
-        )
+        # requests.post(
+        #     url=f'{config.api_base_url}/insert',
+        #     json={
+        #         'table': self.table,
+        #         'values': self.write_batch
+        #     }
+        # )
+        pass  # temporarily to avoid overwriting. will be reverted once reading from base candles is supported
                 

@@ -40,6 +40,7 @@ services:
     command: celery -A app.celery worker --loglevel=info
     environment:
       CELERY_BROKER_URL: redis://redis:6379/0
+      ENV_TYPE: "dev"
     depends_on:
       - redis
     volumes:
