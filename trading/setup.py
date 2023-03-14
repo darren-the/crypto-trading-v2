@@ -12,7 +12,6 @@ setuptools.setup(
     name=name,
     version=version,
     install_requires=[
-        'apache-beam[gcp]==2.43.0',
         'requests==2.28.1',
         'scipy==1.7.3',
     ],

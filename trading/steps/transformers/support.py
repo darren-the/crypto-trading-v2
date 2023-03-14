@@ -1,9 +1,12 @@
-import apache_beam as beam
+from pipeline.task import Task
 from copy import deepcopy
 
 
-class Support(beam.DoFn):
-    def __init__(self, history_length=10):
+class Support(Task):
+    def __init__(self, symbol, timeframe, write_output=False, history_length=10):
+        self.symbol = symbol
+        self.timeframe = timeframe
+        self.write_output = write_output
         self.default_sup = {
             'is_sup': False,
             'start_timestamp': -1,
@@ -15,6 +18,7 @@ class Support(beam.DoFn):
         }
         self.sup_history = []
         self.history_length = history_length
+        super().__init__()
 
     def process(self, element):
         if element['is_low'] is False:
@@ -63,4 +67,4 @@ class Support(beam.DoFn):
                 break
         sup['bottom_history'] = ','.join([str(bottom) for bottom in filtered_sup])
 
-        yield sup
+        return sup

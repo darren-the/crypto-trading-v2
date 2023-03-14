@@ -13,12 +13,15 @@ timeframes = [
     '1D',
     # '2D',
 ]
+base_timeframe = '1m'
+base_ms = 60_000
 table = {
     'aggregatecandles': 'candles',
     'highlow': 'high-low',
     'resistance': 'resistance',
     'support': 'support',
     'rsi': 'rsi',
+    'retracement': 'retracement',
 }
 schema = {
     'basecandles': [
@@ -75,6 +78,11 @@ schema = {
         {'name': 'timestamp', 'type': 'NUMERIC', 'mode': 'REQUIRED'},
         {'name': 'candle_timestamp', 'type': 'NUMERIC', 'mode': 'REQUIRED'},
         {'name': 'rsi', 'type': 'NUMERIC', 'mode': 'REQUIRED'},
+    ],
+    'retracement': [
+        {'name': 'timestamp', 'type': 'NUMERIC', 'mode': 'REQUIRED'},
+        {'name': 'high_retracement', 'type': 'NUMERIC', 'mode': 'REQUIRED'},
+        {'name': 'low_retracement', 'type': 'NUMERIC', 'mode': 'REQUIRED'},
     ]
 }
 bq_hist_start = '2014-01-01'
@@ -83,9 +91,9 @@ local_hist_start = '2022-01-01'
 local_hist_end = '2022-02-01'
 bitfinex = {
     'base_url': 'https://api-pub.bitfinex.com/v2',
-    'candles': {
-        'base_url': 'https://api-pub.bitfinex.com/v2/candles/trade:1m:tBTCUSD/hist',
-        'max_data_per_req': 10000,
-        'max_req_per_min': 90,
+    'candle_url': {
+        'BTCUSD': 'https://api-pub.bitfinex.com/v2/candles/trade:1m:tBTCUSD/hist'
     },
+    'max_data_per_req': 10000,
+    'max_req_per_min': 90,
 }
