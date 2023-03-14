@@ -13,7 +13,7 @@ from pipeline.steps.transformers.rsi import RSI
 from pipeline.steps.transformers.retracement import Retracement
 
 
-def run_pipeline():
+def run():
     fetch_candles = {}
     for s in config.symbols:
         fetch_candles[s] = FetchCandles(s, config.local_hist_start, config.local_hist_end)
