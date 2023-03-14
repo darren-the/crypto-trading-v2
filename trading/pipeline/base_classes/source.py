@@ -8,12 +8,21 @@ class Source(BaseTask):
     def __init__(self):
         self.output_element = None
         self.output_tasks = []
-        self.write_batch = []
+
+        # Metadata
         self.task_name = str(type(self).__name__).lower()
         self.task_id = f'{self.symbol}_{self.task_name}'
         self.table = f'{self.symbol}_{config.table[self.task_name]}'
         self.schema = config.schema[self.task_name]
+
+        # Writing
+        self.write_batch = []
         self.row_formatter = Psycopg2Formatter(self.task_name)
+
+        # Progress tracking
+        self.total_elements = (self.end - self.start) / self.interval
+        self.elements_complete = 0
+        self.percent_complete = 0
         
     def generate(self):
         # Should be overridden by child class
@@ -47,6 +56,14 @@ class Source(BaseTask):
                 
             for output_op in self.output_tasks:
                 output_op.kill_all() if element is None else output_op.activate()
+            
+            # Print progress
+            self.elements_complete += 1
+            next_percent_complete = round(100 * self.elements_complete / self.total_elements)
+            if next_percent_complete > self.percent_complete and (next_percent_complete < 100 \
+                or self.elements_complete == 100):
+                print(f'{str(next_percent_complete)}%', flush=True)
+                self.percent_complete = next_percent_complete
     
     def _post_data(self):
         requests.post(
