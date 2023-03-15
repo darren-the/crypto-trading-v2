@@ -1,14 +1,17 @@
-import apache_beam as beam
-from utils.utils import timeframe_to_ms
+from pipeline.base_classes.task import Task
+from pipeline.utils.utils import timeframe_to_ms
 from copy import deepcopy
 
-class AggregateCandles(beam.DoFn):
-    def __init__(self, timeframe: str):
+class AggregateCandles(Task):
+    def __init__(self, symbol: str, timeframe: str, write_output=False):
+        self.symbol = symbol
         self.timeframe = timeframe
         self.start_timestamp = None
         self.base_ms = timeframe_to_ms('1m')
         self.ms = timeframe_to_ms(timeframe)
         self.last_candle = None
+        self.write_output = write_output
+        super().__init__()
 
     def process(self, element):
         if self.start_timestamp is None:
@@ -42,4 +45,4 @@ class AggregateCandles(beam.DoFn):
             
             self.last_candle = updated_candle
         
-        yield self.last_candle
+        return self.last_candle

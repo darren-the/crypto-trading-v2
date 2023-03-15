@@ -4,7 +4,7 @@ services:
     build: ./api
     container_name: api_container
     ports:
-      - "5000:5000"
+      - "4500:4500"
     volumes:
       - ./api:/app
 
@@ -15,4 +15,47 @@ services:
       - "3000:3000"
     volumes:
       - ./charts:/app
-  
+
+  redis:
+    image: redis:7.0.9
+    ports:
+      - "6379:6379"
+
+  trading:
+    build: ./trading
+    container_name: trading_container
+    environment:
+      ENV_TYPE: "dev"
+    depends_on:
+      - redis
+    ports:
+      - "4000:4000"
+    volumes:
+      - ./trading:/app
+
+  worker:
+    build: ./trading
+    hostname: worker
+    container_name: worker_container
+    command: celery -A app.celery worker --loglevel=info
+    environment:
+      CELERY_BROKER_URL: redis://redis:6379/0
+      ENV_TYPE: "dev"
+    depends_on:
+      - redis
+    volumes:
+      - ./trading:/app
+
+  db:
+    image: postgres
+    container_name: database_container
+    restart: always
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: mypassword
+      POSTGRES_DB: mydatabase
+    ports:
+      - "5432:5432"
+      

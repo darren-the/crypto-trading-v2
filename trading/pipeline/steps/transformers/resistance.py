@@ -1,9 +1,12 @@
-import apache_beam as beam
+from pipeline.base_classes.task import Task
 from copy import deepcopy
 
 
-class Resistance(beam.DoFn):
-    def __init__(self, history_length=10):
+class Resistance(Task):
+    def __init__(self, symbol, timeframe, write_output=False, history_length=10):
+        self.symbol = symbol
+        self.timeframe = timeframe
+        self.write_output = write_output
         self.default_res = {
             'is_res': False,
             'start_timestamp': -1,
@@ -15,6 +18,7 @@ class Resistance(beam.DoFn):
         }
         self.res_history = []
         self.history_length = history_length
+        super().__init__()
 
     def process(self, element):
         if element['is_high'] is False:
@@ -63,4 +67,4 @@ class Resistance(beam.DoFn):
                 break
         res['top_history'] = ','.join([str(top) for top in filtered_res])
 
-        yield res
+        return res
