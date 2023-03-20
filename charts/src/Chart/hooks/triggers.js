@@ -110,6 +110,7 @@ export const useVisibleTimeRangeTrigger = () => {
     candles,
     timeframe,
     VTRChangeHandlerRef,
+    mainChartRef,
     candleStartTime,
     resistance,
     support,
@@ -117,6 +118,11 @@ export const useVisibleTimeRangeTrigger = () => {
     resSupVisible,
     resPriceLines,
     supPriceLines,
+    retracement,
+    setRetracementDisplay,
+    highs,
+    lows,
+    highLowVisible,
   } = useContext(MainContext)
 
   useEffect(() => {
@@ -125,10 +131,44 @@ export const useVisibleTimeRangeTrigger = () => {
     if (VTRChangeHandlerRef != null) chart.timeScale().unsubscribeVisibleTimeRangeChange(VTRChangeHandlerRef.current)
 
     VTRChangeHandlerRef.current = (VTR) => {
-      const to_index = (VTR.to - candleStartTime.current) * 1000 / config.timeframe_to_ms[timeframe]
+      // Set live marker position
+      var live_marker_index = 0
+      if (candles.length > 0 && !isLoading.current) {
+        const live_marker_coordinate = mainChartRef.current.clientWidth * config.candles.live_marker_offset_percentage
+        const live_marker_time = chart.timeScale().coordinateToTime(live_marker_coordinate)
+        const live_marker_time_constrained = 
+          (live_marker_time < candles[0].time) ? candles[0].time :
+          (live_marker_time > candles[candles.length - 1].time) ? candles[candles.length - 1].time :
+          live_marker_time
+        live_marker_index = (live_marker_time_constrained - candleStartTime.current) * 1000 / config.timeframe_to_ms[timeframe]
+        series.candleSeries.setMarkers([
+          {
+              time: live_marker_time_constrained,
+              position: 'aboveBar',
+              color: '#000000',
+              shape: 'arrowDown',
+              text: 'Live',
+          },
+        ])
+      }
+
+      // update highs
+      if (highs.length > 0 && !isLoading.current && highLowVisible.current) {
+        const candleHighs = candles.filter(candle => highs[live_marker_index].high_history.includes(candle.time_ms))
+        series.highSeries.setData(candleHighs)
+
+      }
+
+      // update lows
+      if (lows.length > 0 & !isLoading.current && highLowVisible.current) {
+        const candleLows = candles.filter(candle => lows[live_marker_index].low_history.includes(candle.time_ms))
+        series.lowSeries.setData(candleLows)
+      }
+
+      // update resistance
       if (resistance.length > 0 && !isLoading.current && resSupVisible.current) {
         if (resPriceLines.current.length > 0) resPriceLines.current.map(line => series.candleSeries.removePriceLine(line))
-        resPriceLines.current = resistance[to_index].top_history.map(top_price =>
+        resPriceLines.current = resistance[live_marker_index].top_history.map(top_price =>
           series.candleSeries.createPriceLine({
             price: top_price,
             color: '#ef5350',
@@ -137,9 +177,11 @@ export const useVisibleTimeRangeTrigger = () => {
           })
         )
       }
+
+      // update support
       if (support.length > 0 && !isLoading.current && resSupVisible.current) {
         if (supPriceLines.current.length > 0) supPriceLines.current.map(line => series.candleSeries.removePriceLine(line))
-        supPriceLines.current = support[to_index].bottom_history.map(bottom_price =>
+        supPriceLines.current = support[live_marker_index].bottom_history.map(bottom_price =>
           series.candleSeries.createPriceLine({
             price: bottom_price,
             color: '#26a69a',
@@ -148,10 +190,19 @@ export const useVisibleTimeRangeTrigger = () => {
           })
         )
       }
+
+      // update retracement
+      if (retracement.length > 0 && !isLoading.current) {
+        const current_retracement = retracement[live_marker_index]
+        setRetracementDisplay(
+          `High retracement = ${Math.round(current_retracement.high_retracement * 100)}%, ` +
+          `Low retracement = ${Math.round(current_retracement.low_retracement * 100)}%`
+          )
+      }
     }
 
     chart.timeScale().subscribeVisibleTimeRangeChange(VTRChangeHandlerRef.current)
 
   // eslint-disable-next-line
-  }, [series, candles, resistance, support, timeframe])
+  }, [series, candles, resistance, support, retracement, timeframe, highs, lows])
 }

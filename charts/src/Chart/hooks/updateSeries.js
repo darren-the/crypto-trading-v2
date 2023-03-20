@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import config from '../../config.json'
-import { fetchCandles, fetchHighs, fetchLows, fetchResistance, fetchRsi, fetchSupport } from '../../services/fetch_data'
+import { fetchCandles, fetchHighs, fetchLows, fetchResistance, fetchRetracement, fetchRsi, fetchSupport } from '../../services/fetch_data'
 import { useContext } from 'react'
 import { MainContext } from '../../context'
 
@@ -32,6 +32,8 @@ export const useUpdateSeries = () => {
     setRsi,
     pipelineId,
     symbol,
+    retracement,
+    setRetracement,
   } = useContext(MainContext)
 
   useEffect(() => {
@@ -90,17 +92,13 @@ export const useUpdateSeries = () => {
 
       // update highs
       const highData = await fetchHighs(symbol, timeframe, pipelineId, start, end)
-      const candleHighs = candleData.filter(candle => highData.includes(candle.time_ms))
-      const newHighs = concatMethod(candleHighs, highs)
+      const newHighs = concatMethod(highData, highs)
       setHighs(newHighs)
-      series.highSeries.setData(newHighs)
 
       // fetch lows
       const lowData = await fetchLows(symbol, timeframe, pipelineId, start, end)
-      const candleLows = candleData.filter(candle => lowData.includes(candle.time_ms))
-      const newLows = concatMethod(candleLows, lows)
+      const newLows = concatMethod(lowData, lows)
       setLows(newLows)
-      series.lowSeries.setData(newLows)
 
       // set visible range
       if (loadMode === config.loadMode.TRUNCATE_ALL) {
@@ -126,6 +124,11 @@ export const useUpdateSeries = () => {
       const supData = await fetchSupport(symbol, timeframe, pipelineId, start, end)
       const newSup = concatMethod(supData, support)
       setSupport(newSup)
+
+      // update retracement
+      const retraceData = await fetchRetracement(symbol, timeframe, pipelineId, start, end)
+      const newRetrace = concatMethod(retraceData, retracement)
+      setRetracement(newRetrace)
       
       isLoading.current = false
     }

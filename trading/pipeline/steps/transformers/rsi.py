@@ -3,14 +3,11 @@ from pipeline.base_classes.task import Task
 
 # Relative Strength Index calculation. Source: https://www.investopedia.com/terms/r/rsi.asp
 class RSI(Task):
-    def __init__(self, symbol, timeframe, write_output, max_length=14):
-        self.symbol = symbol
-        self.timeframe = timeframe
-        self.write_output = write_output
+    def __init__(self, *args, **kwargs):
+        self.__dict__.update(kwargs)
         self.last_price = -1
         self.previous_avg_gain = -1
         self.previous_avg_loss = -1
-        self.max_length = max_length
         self.current_length = 0
         super().__init__()
         

@@ -37,7 +37,14 @@ export const fetchHighs = (
 ) => {
   const query_params = get_query_params_url(symbol, timeframe, pipelineId, start, end)
   return axios.get(`${config.base_url}${config.highs.path}${query_params}`).then(response => {
-    return response.data.data.map(element => element[0])
+    // Format highs data
+    return response.data.data.map(element => {
+      return {
+        time: element[0] / 1000,
+        time_ms: element[0],
+        high_history: element[1].split(',').map(high => parseFloat(high))
+      }
+    })
 })
   .catch(error => 
     console.log(error)
@@ -53,7 +60,14 @@ export const fetchLows = (
 ) => {
   const query_params = get_query_params_url(symbol, timeframe, pipelineId, start, end)
   return axios.get(`${config.base_url}${config.lows.path}${query_params}`).then(response => {
-    return response.data.data.map(element => element[0])
+    // Format lows data
+    return response.data.data.map(element => {
+      return {
+        time: element[0] / 1000,
+        time_ms: element[0],
+        low_history: element[1].split(',').map(low => parseFloat(low))
+      }
+    })
 })
   .catch(error => 
     console.log(error)
@@ -121,6 +135,30 @@ export const fetchRsi = (
         time: element[0] / 1000,
         time_ms: element[0],
         value: element[1],
+      }
+    })
+})
+  .catch(error => 
+    console.log(error)
+  )
+}
+
+export const fetchRetracement = (
+  symbol,
+  timeframe,
+  pipelineId,
+  start,
+  end
+) => {
+  const query_params = get_query_params_url(symbol, timeframe, pipelineId, start, end)
+  return axios.get(`${config.base_url}${config.retracement.path}${query_params}`).then(response => {
+    // Format support data
+    return response.data.data.map(element => {
+      return {
+        time: element[0] / 1000,
+        time_ms: element[0],
+        high_retracement: element[1],
+        low_retracement: element[2],
       }
     })
 })

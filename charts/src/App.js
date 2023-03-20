@@ -21,6 +21,8 @@ function App() {
   const [rsi, setRsi] = useState([])
   const [pipelineId, setPipelineId] = useState('main')
   const [symbol, setSymbol] = useState('btcusd')
+  const [retracement, setRetracement] = useState([])
+  const [retracementDisplay, setRetracementDisplay] = useState('No current retracement')
 
   const variables = {
     mainChartRef: useRef(),
@@ -69,6 +71,11 @@ function App() {
     setPipelineId,
     symbol,
     setSymbol,
+    retracement,
+    setRetracement,
+    retracementDisplay,
+    setRetracementDisplay,
+    highLowVisible: useRef(true),
   }
 
   return (

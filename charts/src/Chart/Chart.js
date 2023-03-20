@@ -19,6 +19,7 @@ const Chart = () => {
     toggleResSup,
     setToggleResSup,
     rsiChartRef,
+    retracementDisplay,
   } = useContext(MainContext)
   
   // Charts and series
@@ -77,19 +78,33 @@ const Chart = () => {
 
   return (
     <div>
-      <div style={{ width: 1600, height: 450 }} ref={mainChartRef} />
-      <div style={{ width: 1600, height: 150 }} ref={rsiChartRef} />
-      <form onSubmit={submitDate}>
-        <label>
-          Date
-          <input type="text" name="date"></input>
-        </label>
-      </form>
-      {timeframeButtons}
-      <div>current timeframe: {timeframe}</div>
-      <button onClick={toggleHighLowClick}>Toggle highs and lows</button>
-      <button onClick={toggleResSupClick}>Toggle resistances and supports</button>
-      <button onClick={test_fetch}>test fetch</button>
+      <div>
+        <div style={{ width: '100%', height: 450 }} ref={mainChartRef} />
+        <div style={{ width: '100%', height: 150 }} ref={rsiChartRef} />
+      </div>
+      
+      <div style={{ display: 'flex', width: '100%' }}>
+
+        <div style={{ width: '50%', height: 'auto' }}>
+          <form onSubmit={submitDate}>
+            <label>
+              Date
+              <input type="text" name="date"></input>
+            </label>
+          </form>
+          {timeframeButtons}
+          <div>current timeframe: {timeframe}</div>
+          <button onClick={toggleHighLowClick}>Toggle highs and lows</button>
+          <button onClick={toggleResSupClick}>Toggle resistances and supports</button>
+          <button onClick={test_fetch}>test fetch</button>
+        </div>
+
+        <div style={{ width: '50%' }}>
+          {retracementDisplay}
+        </div>
+
+      </div>
+      
     </div>
   )
 }
