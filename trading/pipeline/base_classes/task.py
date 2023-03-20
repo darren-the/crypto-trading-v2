@@ -13,8 +13,8 @@ class Task(BaseTask):
 
         # metadata
         self.task_name = str(type(self).__name__).lower()
-        self.task_id = f'{self.symbol}_{self.task_name}_{self.timeframe}'
-        self.table = f'{self.symbol}_{config.table[self.task_name]}_{self.timeframe}_{os.getenv("PIPELINE_ID")}'.lower()  # add pipeline_id here
+        self.task_id = f'{self.symbol}_{self.task_name}_{self.timeframe}_{os.getenv("PIPELINE_ID")}'.lower()
+        self.table = f'{self.symbol}_{config.table[self.task_name]}_{self.timeframe}_{os.getenv("PIPELINE_ID")}'.lower()
         self.schema = config.schema[self.task_name]
         self.fields = [s.split(' ')[0] for s in self.schema]
         self.env_type = os.getenv('ENV_TYPE')
@@ -41,7 +41,8 @@ class Task(BaseTask):
                 # also write if table doesn't exist
                 self.data_writer = self._db_write
                 self._create_table()
-            
+
+        super().__init__()
     
     def process(self, element):
         return element
@@ -62,6 +63,10 @@ class Task(BaseTask):
         # write output
         self.data_writer()
 
+        # log task state
+        if self.logging:
+            self._write_log()
+
         for output_op in self.output_tasks:
             output_op.activate()
     
@@ -69,5 +74,7 @@ class Task(BaseTask):
         self.output_element = None
         print(f'shutting down {self.task_id}', flush=True)
         self.data_writer(flush=True)
+        if self.logging:
+            self._close_log()
         for output_op in self.output_tasks:
             output_op.kill_all()

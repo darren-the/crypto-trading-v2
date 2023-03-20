@@ -1,42 +1,57 @@
 from pipeline.base_classes.task import Task
+from pipeline.utils.parsers import parse_high_low_history
 
 
 class Retracement(Task):
-    def __init__(self, symbol: str, timeframe: str, write_output: bool=False):
-        self.symbol = symbol
-        self.timeframe = timeframe
-        self.write_output = write_output
+    def __init__(self, *args, **kwargs):
+        self.__dict__.update(kwargs)
         self.prev_high = None
         self.prev_low = None
-        self.is_high_first = None
         super().__init__()
     
     def process(self, element):
         retracement = {
             'timestamp': element['timestamp'],
-            'high_retracement': -1,
-            'low_retracement': -1,
+            'candle_timestamp': element['candle_timestamp'],
+            'high_retracement': 0,
+            'low_retracement': 0,
         }
 
-        if self.prev_high is not None and self.prev_low is not None:
-            if element['high_top'] > 0:
-                prev_low = self.prev_low if self.is_high_first else element['low_bottom']
-                if self.prev_high == prev_low:
-                    retracement['high_retracement'] = 0
-                else:
-                    retracement['high_retracement'] = round((element['high_top'] - prev_low) / (self.prev_high - prev_low), 3)
-            if element['low_bottom'] > 0:
-                prev_high = self.prev_high if not self.is_high_first else element['high_top']
-                if prev_high == self.prev_low:
-                    retracement['low_retracement'] = 0
-                else:
-                    retracement['low_retracement'] = round((prev_high - element['low_bottom']) / (prev_high - self.prev_low), 3)
-        if element['is_high']:
-            self.prev_high = element['high_top']
-            self.is_high_first = False
-        if element['is_low']:
-            self.prev_low = element['low_bottom']
-            self.is_high_first = True
-        
+        high_low_history = parse_high_low_history(element)
+
+        # Store the last two high/lows necessary for retracement calculation
+        last_high_then_low = []
+        last_low_then_high = []
+        while len(high_low_history) > 0:
+            hl = high_low_history.pop()
+            if hl['type'] == 'high':
+                if len(last_low_then_high) == 0:
+                    last_low_then_high.insert(0, hl)
+                if len(last_high_then_low) == 1:
+                    last_high_then_low.insert(0, hl)
+            else:
+                if len(last_high_then_low) == 0:
+                    last_high_then_low.insert(0, hl)
+                if len(last_low_then_high) == 1:
+                    last_low_then_high.insert(0, hl)
+            if len(last_high_then_low) == 2 and len(last_low_then_high) == 2:
+                break
+
+        # Calculate low retracement
+        if len(last_high_then_low) == 2:
+            high = last_high_then_low[0]
+            low = last_high_then_low[1]
+            denom = high['price'] - low['price']
+            if denom > 0:
+                retracement['low_retracement'] = (element['close'] - low['price']) / denom
+
+        # Calculate high retracement
+        if len(last_low_then_high) == 2:
+            low = last_low_then_high[0]
+            high = last_low_then_high[1]
+            denom = high['price'] - low['price']
+            if denom > 0:
+                retracement['high_retracement'] = (high['price'] - element['close']) / denom
+    
         return retracement
     

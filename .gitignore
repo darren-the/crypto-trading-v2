@@ -6,6 +6,7 @@ service_account_key.json
 
 # ===================== PIPELINE =====================
 trading/data
+trading/pipeline_logs
 
 
 # ===================== CHARTING =====================

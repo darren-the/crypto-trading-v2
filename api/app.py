@@ -3,9 +3,14 @@ from flask_cors import CORS
 import psycopg2
 from psycopg2.extensions import register_adapter, AsIs
 from decimal import Decimal
+from utils import timestamp_to_date
+import collections
+import re
+
 
 app = Flask(__name__)
 CORS(app)
+app.config['JSON_SORT_KEYS'] = False
 
 DEC2FLOAT = psycopg2.extensions.new_type(
 psycopg2.extensions.DECIMAL.values,
@@ -13,8 +18,9 @@ psycopg2.extensions.DECIMAL.values,
 lambda value, curs: float(value) if value is not None else None)
 psycopg2.extensions.register_type(DEC2FLOAT)
 
-@app.route('/postgresql_test', methods=['GET'])
-def postgresql_test():
+
+@app.route('/table_names', methods=['GET'])
+def table_names():
     conn = psycopg2.connect(
         host="db",
         database="mydatabase",
@@ -23,7 +29,8 @@ def postgresql_test():
     )
     cur = conn.cursor()
     cur.execute("""
-        SELECT table_name FROM information_schema.tables
+        SELECT table_name
+        FROM information_schema.tables
     """)
     table_names = cur.fetchall()
     cur.close()
@@ -105,17 +112,8 @@ def delete_table():
 
 @app.route('/data/<table>', methods=['GET'])
 def data(table):
-    # Require args
     args = request.args
-    required_args = ['start', 'end']
-    missing_args = []
-    for required_arg in required_args:
-        if args.get(required_arg) is None and not \
-            (required_arg == 'timeframe' and table[7:].lower() == 'base_candles'):  # exception for base candles
-            missing_args.append(required_arg)
-    if len(missing_args) > 0:
-        return {'error': 'Missing parameters: ' + str(missing_args)}, 400
-
+        
     # Connect to the PostgreSQL database
     conn = psycopg2.connect(
         host="db",
@@ -125,18 +123,81 @@ def data(table):
     )
     cur = conn.cursor()
 
-    # Fetch data from table
+    # Format query based on args
+    query_limit = ''
+    query_timestamp_where = ''
+    query_row_number_select = ''
+    query_row_number_where = ''
+    
+    if args.get('start') is None or args.get('end') is None:
+        query_limit = 'LIMIT 10000'
+    else:
+        query_timestamp_where = f'''
+            WHERE
+                timestamp >= {args.get('start')}
+                AND timestamp < {args.get('end')}
+        '''
+
+    if args.get('aggregate') is not None and args.get('aggregate'):
+        query_row_number_select = '''
+            , ROW_NUMBER() OVER (
+                PARTITION BY candle_timestamp
+                ORDER BY timestamp DESC
+            ) AS row_number
+        '''
+        query_row_number_where = 'WHERE row_number = 1'
+
+    # Select columns
+    cur.execute(f'''
+        SELECT column_name
+        FROM information_schema.columns
+        WHERE table_name = '{table}'
+    ''')
+    column_results = cur.fetchall()
+    column_names = []
+    time_indices = []  # store time indices for time formatting
+    for i in range(len(column_results)):
+        column_name = column_results[i][0]
+        column_names.append(column_name)
+        if re.search('timestamp', column_name) is not None:
+            time_indices.append(i)
+
     QUERY = f'''
-        SELECT *
-        FROM {table}
-        WHERE
-            timestamp >= {args.get('start')}
-            AND timestamp < {args.get('end')}
+        SELECT {','.join(column_names)}
+        FROM (
+            SELECT
+                *
+                {query_row_number_select}
+            FROM {table}
+            {query_timestamp_where}
+        ) AS data
+        {query_row_number_where}
         ORDER BY timestamp
+        {query_limit}
     '''
     cur.execute(QUERY)
     query_result = cur.fetchall()
 
+    # Format timestamps if required
+    if args.get('time_format') is not None and args.get('time_format') == 'datetime':
+        formatted_query_result = []
+        for row in query_result:
+            formatted_row = list(row)
+            for i in time_indices:
+                formatted_row[i] = timestamp_to_date(formatted_row[i] / 1000) if formatted_row[i] > 0 else formatted_row[i]
+            formatted_query_result.append(formatted_row)
+        query_result = formatted_query_result
+    
+    # Format output as dicts
+    if args.get('data_format') is not None and args.get('data_format') == 'dict':
+        formatted_query_result = []
+        for row in query_result:
+            formatted_row = collections.OrderedDict()
+            for column_name, value in zip(column_names, row):
+                formatted_row[column_name] = value
+            formatted_query_result.append(formatted_row)
+        query_result = formatted_query_result
+        
     # Commit the transaction
     conn.commit()
 
@@ -310,20 +371,21 @@ def chart_highs():
 
     # Fetch data from table
     QUERY = f'''
-        SELECT high_timestamp
+        SELECT
+            candle_timestamp
+            , high_timestamp_history
         FROM (
             SELECT
-                high_timestamp
-                , candle_timestamp
+                candle_timestamp
+                , high_timestamp_history
                 , ROW_NUMBER() OVER (
                     PARTITION BY candle_timestamp
                     ORDER BY timestamp DESC
                 ) AS row_number
-            FROM {args.get('symbol')}_high_low_{args.get('timeframe')}_{args.get('pipeline_id')}
+            FROM {args.get('symbol')}_high_low_history_{args.get('timeframe')}_{args.get('pipeline_id')}
             WHERE
                 candle_timestamp >= {args.get('start')}
                 AND candle_timestamp < {args.get('end')}
-                AND is_high = TRUE
         ) AS highs
         WHERE row_number = 1 
         ORDER BY candle_timestamp
@@ -362,20 +424,21 @@ def chart_lows():
 
     # Fetch data from table
     QUERY = f'''
-        SELECT low_timestamp
+        SELECT
+            candle_timestamp
+            , low_timestamp_history
         FROM (
             SELECT
-                low_timestamp
-                , candle_timestamp
+                candle_timestamp
+                , low_timestamp_history
                 , ROW_NUMBER() OVER (
                     PARTITION BY candle_timestamp
                     ORDER BY timestamp DESC
                 ) AS row_number
-            FROM {args.get('symbol')}_high_low_{args.get('timeframe')}_{args.get('pipeline_id')}
+            FROM {args.get('symbol')}_high_low_history_{args.get('timeframe')}_{args.get('pipeline_id')}
             WHERE
                 candle_timestamp >= {args.get('start')}
                 AND candle_timestamp < {args.get('end')}
-                AND is_low = TRUE
         ) AS lows
         WHERE row_number = 1 
         ORDER BY candle_timestamp
@@ -536,6 +599,61 @@ def chart_rsi():
                 candle_timestamp >= {args.get('start')}
                 AND candle_timestamp < {args.get('end')}
         ) AS rsi
+        WHERE row_number = 1 
+        ORDER BY candle_timestamp
+    '''
+
+    cur.execute(QUERY)
+    query_result = cur.fetchall()
+
+    # Commit the transaction
+    conn.commit()
+
+    cur.close()
+    conn.close()
+    return {'data': query_result}
+
+@app.route('/charts/retracement', methods=['GET'])
+def chart_retracement():
+    # Require args
+    args = request.args
+    required_args = ['symbol', 'timeframe', 'pipeline_id', 'start', 'end']
+    missing_args = []
+    for required_arg in required_args:
+        if args.get(required_arg) is None:
+            missing_args.append(required_arg)
+    if len(missing_args) > 0:
+        return {'error': 'Missing parameters: ' + str(missing_args)}, 400
+
+    # Connect to the PostgreSQL database
+    conn = psycopg2.connect(
+        host="db",
+        database="mydatabase",
+        user="myuser",
+        password="mypassword"
+    )
+    cur = conn.cursor()
+
+    # Fetch data from table
+    QUERY = f'''
+        SELECT
+            candle_timestamp
+            , high_retracement
+            , low_retracement
+        FROM (
+            SELECT
+                candle_timestamp
+                , high_retracement
+                , low_retracement
+                , ROW_NUMBER() OVER (
+                    PARTITION BY candle_timestamp
+                    ORDER BY timestamp DESC
+                ) AS row_number
+            FROM {args.get('symbol')}_retracement_{args.get('timeframe')}_{args.get('pipeline_id')}
+            WHERE
+                candle_timestamp >= {args.get('start')}
+                AND candle_timestamp < {args.get('end')}
+        ) AS retracement
         WHERE row_number = 1 
         ORDER BY candle_timestamp
     '''

@@ -51,6 +51,8 @@ class Source(BaseTask):
                 self.data_source = self.generate()
                 self.data_writer = self._db_write
                 self._create_table()
+                
+        super().__init__()
         
     def generate(self):
         # Should be overridden by child class
@@ -70,14 +72,10 @@ class Source(BaseTask):
 
             # write output
             self.data_writer()
-                
-            for output_op in self.output_tasks:
-                if element is None:
-                    self.data_writer(flush=True)
-                    print(f'{self.table} has been flushed')
-                    output_op.kill_all()
-                else:
-                    output_op.activate()
+
+            # log source state
+            if self.logging:
+                self._write_log()
             
             # Print progress
             self.elements_complete += 1
@@ -86,4 +84,14 @@ class Source(BaseTask):
                 or self.elements_complete == 100):
                 print(f'{str(next_percent_complete)}%', flush=True)
                 self.percent_complete = next_percent_complete
+            
+            for output_op in self.output_tasks:
+                if element is None:
+                    self.data_writer(flush=True)
+                    if self.logging:
+                        self._close_log()
+                    print(f'{self.table} has been flushed')
+                    output_op.kill_all()
+                else:
+                    output_op.activate()
             

@@ -12,6 +12,7 @@ from pipeline.steps.transformers.resistance import Resistance
 from pipeline.steps.transformers.support import Support
 from pipeline.steps.transformers.rsi import RSI
 from pipeline.steps.transformers.retracement import Retracement
+from pipeline.steps.transformers.high_low_history import HighLowHistory
 
 import os
 
@@ -23,7 +24,7 @@ def run(pipeline_id):
 
     fetch_candles = {}
     for s in config.symbols:
-        fetch_candles[s] = FetchCandles(s)
+        fetch_candles[s] = FetchCandles(symbol=s)
 
         # Base tasks objects
         aggregate_candles = {s: {}}
@@ -32,52 +33,56 @@ def run(pipeline_id):
         resistance = {s: {}}
         support = {s: {}}
         retracement = {s: {}}
+        high_low_history = {s: {}}
 
         for t in config.timeframes:
             # Defining tasks
             aggregate_candles[s][t] = AggregateCandles(
                 symbol=s,
                 timeframe=t,
-                write_output=True
             )
 
             high_low[s][t] = HighLow(
                 symbol=s,
                 timeframe=t,
-                write_output=True,
                 pivot=5,
             )
 
             rsi[s][t] = RSI(
                 symbol=s,
                 timeframe=t,
-                write_output=True,
                 max_length=14
             )
 
             resistance[s][t] = Resistance(
                 symbol=s,
                 timeframe=t,
-                write_output=True,
                 history_length=10
             )
 
             support[s][t] = Support(
                 symbol=s,
                 timeframe=t,
-                write_output=True,
                 history_length=10
             )
 
-            # retracement[s][t] = Retracement(
-            #     symbol=s,
-            #     timeframe=t,
-            #     write_output=True,
-            # )
+            retracement[s][t] = Retracement(
+                symbol=s,
+                timeframe=t,
+            )
+
+            high_low_history[s][t] = HighLowHistory(
+                symbol=s,
+                timeframe=t,
+                history_length=10,
+            )
 
             # Organise dependencies
             fetch_candles[s] >> aggregate_candles[s][t] >> [high_low[s][t], rsi[s][t]]
             high_low[s][t] >> [resistance[s][t], support[s][t]]
+            [aggregate_candles[s][t], high_low[s][t]] >> high_low_history[s][t]
+            [aggregate_candles[s][t], high_low_history[s][t]] >> retracement[s][t]
+
     
     for s in config.symbols:
         fetch_candles[s].activate()

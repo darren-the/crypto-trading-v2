@@ -8,9 +8,9 @@ import os
 
 
 class FetchCandles(Source):
-    def __init__(self, symbol: str):
-        self.symbol = symbol
-        self.url = config.bitfinex['candle_url'][symbol]
+    def __init__(self, *args, **kwargs):
+        self.__dict__.update(kwargs)
+        self.url = config.bitfinex['candle_url'][self.symbol]
         self.limit = config.bitfinex['max_data_per_req']
         self.interval = config.base_ms
         self.last_candle = None

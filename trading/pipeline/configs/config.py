@@ -23,6 +23,7 @@ table = {
     'support': 'support',
     'rsi': 'rsi',
     'retracement': 'retracement',
+    'highlowhistory': 'high_low_history',
 }
 schema = {
     'fetchcandles': [
@@ -82,8 +83,18 @@ schema = {
     ],
     'retracement': [
         'timestamp NUMERIC PRIMARY KEY',
+        'candle_timestamp NUMERIC NOT NULL',
         'high_retracement NUMERIC NOT NULL',
         'low_retracement NUMERIC NOT NULL',
+    ],
+    'highlowhistory': [
+        'timestamp NUMERIC PRIMARY KEY',
+        'candle_timestamp NUMERIC NOT NULL',
+        'high_timestamp_history TEXT NOT NULL',
+        'low_timestamp_history TEXT NOT NULL',
+        'high_low_type_history TEXT NOT NULL',
+        'high_low_timestamp_history TEXT NOT NULL',
+        'high_low_price_history TEXT NOT NULL',
     ]
 }
 dev_hist_start = '2014-01-01'

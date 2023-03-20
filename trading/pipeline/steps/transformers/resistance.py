@@ -3,10 +3,8 @@ from copy import deepcopy
 
 
 class Resistance(Task):
-    def __init__(self, symbol, timeframe, write_output=False, history_length=10):
-        self.symbol = symbol
-        self.timeframe = timeframe
-        self.write_output = write_output
+    def __init__(self, *args, **kwargs):
+        self.__dict__.update(kwargs)
         self.default_res = {
             'is_res': False,
             'start_timestamp': -1,
@@ -17,7 +15,6 @@ class Resistance(Task):
             'top_history': ''
         }
         self.res_history = []
-        self.history_length = history_length
         super().__init__()
 
     def process(self, element):

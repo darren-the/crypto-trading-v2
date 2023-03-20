@@ -5,11 +5,8 @@ from copy import deepcopy
 
 
 class HighLow(Task):
-    def __init__(self, symbol, timeframe, write_output=False, pivot=5):
-        self.symbol = symbol
-        self.timeframe = timeframe
-        self.write_output = write_output
-        self.pivot = pivot
+    def __init__(self, *args, **kwargs):
+        self.__dict__.update(kwargs)
         self.current_candles = []
         self.high_low = {
             'timestamp': -1,
@@ -71,13 +68,14 @@ class HighLow(Task):
     
     def _update_high(self, element, update_low=True):
         # Update high
-        if element['high'] >= self.high_low['high_top']:
-            self.high_low['high_timestamp'] = element['candle_timestamp']
-            self.high_low['high_top'] = element['high']
         bottom = max(element['open'], element['close'])
-        if bottom >= self.high_low['high_bottom']:
+        if element['high'] > self.high_low['high_top'] and bottom > self.high_low['high_bottom']:
             self.high_low['high_timestamp'] = element['candle_timestamp']
+        if element['high'] > self.high_low['high_top']:
+            self.high_low['high_top'] = element['high']
+        if bottom > self.high_low['high_bottom']:
             self.high_low['high_bottom'] = bottom
+        
         
         # Also update the low
         if update_low:
@@ -91,14 +89,15 @@ class HighLow(Task):
 
     def _update_low(self, element, update_high=True):
         # Update low
-        if element['low'] <= self.high_low['low_bottom']:
-            self.high_low['low_timestamp'] = element['candle_timestamp']
-            self.high_low['low_bottom'] = element['low']
         top = min(element['open'], element['close'])
-        if top <= self.high_low['low_top']:
+        if element['low'] < self.high_low['low_bottom'] and top < self.high_low['low_top']:
             self.high_low['low_timestamp'] = element['candle_timestamp']
+        if element['low'] < self.high_low['low_bottom']:
+            self.high_low['low_bottom'] = element['low']
+        if top < self.high_low['low_top']:
             self.high_low['low_top'] = top
         
+
         if update_high:
             if self.high_low['high_timestamp'] != -1:
                 if self.high_low['low_timestamp'] > self.high_low['high_timestamp']:

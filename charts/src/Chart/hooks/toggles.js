@@ -4,11 +4,14 @@ import { MainContext } from '../../context'
 export const useToggleHighsLows = () => {
   const {
     series,
-    toggleHighLow
+    toggleHighLow,
+    highLowVisible,
   } = useContext(MainContext)
 
   useEffect(() => {
     if (series === null) return
+    if (highLowVisible.current) highLowVisible.current = false
+    else highLowVisible.current = true
     series.highSeries.applyOptions({visible: toggleHighLow})
     series.lowSeries.applyOptions({visible: toggleHighLow})
     // eslint-disable-next-line

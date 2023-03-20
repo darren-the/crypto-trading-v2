@@ -3,7 +3,8 @@
   "candles": {
     "path": "/candles",
     "fetchWindow": 10000,
-    "defaultVisibleWindow": 500
+    "defaultVisibleWindow": 500,
+    "live_marker_offset_percentage": 0.75
   },
   "highs": {
     "path": "/highs"
@@ -19,6 +20,9 @@
   },
   "rsi": {
     "path": "/rsi"
+  },
+  "retracement": {
+    "path": "/retracement"
   },
   "timeframes": [
     "1m",

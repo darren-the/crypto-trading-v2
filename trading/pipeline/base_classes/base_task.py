@@ -1,8 +1,17 @@
 import requests
 from pipeline.configs import config
+import os
 
 
 class BaseTask:
+    def __init__(self):
+        # logging
+        if not hasattr(self, 'logging'):
+            self.logging = False
+        
+        if self.logging:
+            self._open_log()
+
     def __rshift__(self, other):
         if BaseTask in other.__class__.__mro__:
             self.output_tasks.append(other)
@@ -60,4 +69,14 @@ class BaseTask:
                 yield {field: value for field, value in zip(self.fields, row)}
         
         yield None
-                
+
+    def _open_log(self):
+        if not os.path.exists('pipeline_logs'):
+            os.mkdir('pipeline_logs')
+        self.log_file = open(f'pipeline_logs/{self.task_id}', 'w')
+    
+    def _write_log(self):
+        self.log_file.write(str(vars(self)) + '\n')
+    
+    def _close_log(self):
+        self.log_file.close()
