@@ -5,7 +5,7 @@ import { useContext } from 'react'
 import { MainContext } from '../../context'
 
 
-export const useUpdateSeries = () => {
+export const useUpdateLiveSeries = () => {
   const {
     chart,
     series,
@@ -34,6 +34,8 @@ export const useUpdateSeries = () => {
     symbol,
     retracement,
     setRetracement,
+    liveIndex,
+    liveCandles,
   } = useContext(MainContext)
 
   useEffect(() => {
@@ -47,17 +49,18 @@ export const useUpdateSeries = () => {
     // configure start/end window to fetch data. Also configure concatenation method.
     if (loadMode === config.loadMode.PREPEND) {
       end = candles[0].time_ms
-      start = end - (config.timeframe_to_ms[timeframe] * config.candles.histFetchWindow)
+      start = end - (config.timeframe_to_ms[timeframe] * config.candles.liveFetchWindow)
       concatMethod = (newData, oldData) => newData.concat(oldData)
 
     } else if (loadMode === config.loadMode.APPEND) {
-      start = candles.at(-1).time_ms + config.timeframe_to_ms[timeframe]
-      end = start + (config.timeframe_to_ms[timeframe] * config.candles.histFetchWindow)
-      concatMethod = (newData, oldData) => oldData.concat(newData)
-
+      // APPEND is disabled for live chart
+      console.log('APPEND is disabled for live chart')
+      endOfDataFlag.current = true
+      isLoading.current = false
+      return
     } else if (loadMode === config.loadMode.TRUNCATE_ALL) {
-      start = truncTime - (config.timeframe_to_ms[timeframe] * config.candles.histFetchWindow / 2)
-      end = truncTime + (config.timeframe_to_ms[timeframe] * config.candles.histFetchWindow / 2)
+      start = truncTime - (config.timeframe_to_ms[timeframe] * config.candles.liveFetchWindow / 2)
+      end = truncTime + (config.timeframe_to_ms[timeframe] * config.candles.liveFetchWindow / 2)
       concatMethod = (newData, oldData) => newData
     }
 
@@ -79,32 +82,21 @@ export const useUpdateSeries = () => {
 
       // update candles
       const newCandles = concatMethod(candleData, candles)
-      candleStartTime.current = newCandles[0].time
-      lastIndex.current = newCandles.length - 1
+      // candleStartTime.current = newCandles[0].time
+      // lastIndex.current = newCandles.length - 1
       setCandles(newCandles)
-      series.candleSeries.setData(newCandles)
-
-      // update rsi
-      const rsiData = await fetchRsi(symbol, timeframe, pipelineId, start, end)
-      const newRsi = concatMethod(rsiData, rsi)
-      setRsi(newRsi)
-      series.rsiSeries.setData(newRsi)
-
-      // update highs
-      const highData = await fetchHighs(symbol, timeframe, pipelineId, start, end)
-      const newHighs = concatMethod(highData, highs)
-      setHighs(newHighs)
-
-      // fetch lows
-      const lowData = await fetchLows(symbol, timeframe, pipelineId, start, end)
-      const newLows = concatMethod(lowData, lows)
-      setLows(newLows)
+      if (loadMode === config.loadMode.TRUNCATE_ALL) {
+        // Set live index
+        liveIndex.current = newCandles.findIndex(candle => candle.base_time === truncTime / 1000) - 1
+      }
+      liveCandles.current = newCandles.slice(0, liveIndex.current + 1).filter(candle => candle.is_complete)
+      series.candleSeries.setData(liveCandles.current)
 
       // set visible range
       if (loadMode === config.loadMode.TRUNCATE_ALL) {
         chart.timeScale().setVisibleRange({
-          from: truncTime / 1000,
-          to: (truncTime + config.timeframe_to_ms[timeframe] * config.candles.defaultVisibleWindow) / 1000
+          from: (truncTime - config.timeframe_to_ms[timeframe] * config.candles.defaultVisibleWindow) / 1000,
+          to: truncTime
         })
       }
 
@@ -114,21 +106,6 @@ export const useUpdateSeries = () => {
           visible: true
         })
       })
-
-      // update resistances
-      const resData = await fetchResistance(symbol, timeframe, pipelineId, start, end)
-      const newRes = concatMethod(resData, resistance)
-      setResistance(newRes)
-
-      // update supports
-      const supData = await fetchSupport(symbol, timeframe, pipelineId, start, end)
-      const newSup = concatMethod(supData, support)
-      setSupport(newSup)
-
-      // update retracement
-      const retraceData = await fetchRetracement(symbol, timeframe, pipelineId, start, end)
-      const newRetrace = concatMethod(retraceData, retracement)
-      setRetracement(newRetrace)
       
       isLoading.current = false
     }

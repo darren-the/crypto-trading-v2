@@ -1,8 +1,10 @@
 {
   "base_url": "http://localhost:4500/charts",
+  "live_base_url": "http://localhost:4500/live_charts",
   "candles": {
     "path": "/candles",
-    "fetchWindow": 10000,
+    "histFetchWindow": 10000,
+    "liveFetchWindow": 200000,
     "defaultVisibleWindow": 500,
     "live_marker_offset_percentage": 0.75
   },

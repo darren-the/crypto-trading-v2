@@ -6,10 +6,11 @@ import { useContext } from 'react'
 import { MainContext } from '../context'
 import config from '../config.json'
 import { useToggleHighsLows, useToggleResSup } from './hooks/toggles'
-import axios from 'axios'
+import { useUpdateLiveSeries } from './hooks/updateLiveSeries'
 
 const Chart = () => {
   const {
+    series,
     mainChartRef,
     setTimestamp,
     timeframe,
@@ -20,25 +21,32 @@ const Chart = () => {
     setToggleResSup,
     rsiChartRef,
     retracementDisplay,
+    liveRef,
+    candles,
+    liveCandles,
+    unaggCandles,
+    liveIndex,
   } = useContext(MainContext)
-  
+
+  /* ==================== CHARTING HOOKS ==================== */
   // Charts and series
   useCreateChart()
   useCreateSeries()
-  useUpdateSeries()
+  const seriesUpdater = (liveRef.current) ? useUpdateLiveSeries : useUpdateSeries
+  seriesUpdater()
 
   // triggers
   useTimestampTrigger()
   useTimeframeTrigger()
   useVisibleLogicalRangeTrigger()
-  useVisibleTimeRangeTrigger()
+  const VTRTrigger = (liveRef.current) ? () => {} : useVisibleTimeRangeTrigger
+  VTRTrigger()
 
   // toggles
   useToggleHighsLows()
   useToggleResSup()
 
-  // ============================================================================
-
+  /* ==================== CHARTING BUTTONS ==================== */
   // Function for inputting a date
   const submitDate = (e) => {
     e.preventDefault()
@@ -67,13 +75,28 @@ const Chart = () => {
     else setToggleResSup(true)
   }
 
-  const test_fetch = () => {
-    console.log('hello world')
-    axios.get('http://localhost:4000/test').then(response => {
-      console.log(response.data)
-    }).catch(error => {
-      console.log(error)
-    })
+  // Live back
+  const liveBackClick = () => {
+    if (!liveRef.current) return
+    liveIndex.current--
+    if (candles[liveIndex.current].time < candles[liveIndex.current + 1].time) {
+      liveCandles.current.pop()
+    } else if (candles[liveIndex.current].time === candles[liveIndex.current + 1].time) {
+      liveCandles.current[liveCandles.current.length - 1] = candles[liveIndex.current]
+    }
+    series.candleSeries.setData(liveCandles.current)
+  }
+
+  // Live forward
+  const liveForwardClick = () => {
+    if (!liveRef.current) return
+    liveIndex.current++
+    if (candles[liveIndex.current - 1].time < candles[liveIndex.current].time) {
+      liveCandles.current.push(candles[liveIndex.current])
+    } else if (candles[liveIndex.current - 1].time === candles[liveIndex.current].time) {
+      liveCandles.current[liveCandles.current.length - 1] = candles[liveIndex.current]
+    }
+    series.candleSeries.setData(liveCandles.current)
   }
 
   return (
@@ -94,9 +117,15 @@ const Chart = () => {
           </form>
           {timeframeButtons}
           <div>current timeframe: {timeframe}</div>
-          <button onClick={toggleHighLowClick}>Toggle highs and lows</button>
-          <button onClick={toggleResSupClick}>Toggle resistances and supports</button>
-          <button onClick={test_fetch}>test fetch</button>
+          <div>
+            <button onClick={toggleHighLowClick}>Toggle highs and lows</button>
+            <button onClick={toggleResSupClick}>Toggle resistances and supports</button>
+          </div>
+          <div>
+            <button onClick={liveBackClick}>Back</button>
+            <button onClick={liveForwardClick}>Forward</button>
+
+          </div>
         </div>
 
         <div style={{ width: '50%' }}>

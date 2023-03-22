@@ -76,6 +76,9 @@ function App() {
     retracementDisplay,
     setRetracementDisplay,
     highLowVisible: useRef(true),
+    liveRef: useRef(true),
+    liveIndex: useRef(0),
+    liveCandles: useRef([]),
   }
 
   return (

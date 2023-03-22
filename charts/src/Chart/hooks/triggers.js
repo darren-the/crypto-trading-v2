@@ -46,6 +46,7 @@ export const useTimeframeTrigger = () => {
     setTruncTime,
     setLoadMode,
     isLoading,
+    liveCandles,
   } = useContext(MainContext)
 
   useEffect(() => {
@@ -54,7 +55,10 @@ export const useTimeframeTrigger = () => {
     else {
       startOfDataFlag.current = false
       endOfDataFlag.current = false
-      setTruncTime(chart.timeScale().getVisibleRange().from * 1000)
+      // get truncate time
+      const lastCandle = liveCandles.current[liveCandles.current.length - 1]
+      const truncTime = (lastCandle.is_complete) ? lastCandle.time_ms : liveCandles.current[liveCandles.current.length - 2].time_ms
+      setTruncTime(truncTime)
       setLoadMode(config.loadMode.TRUNCATE_ALL)
       Object.entries(series).forEach(([k,v]) => {
         v.applyOptions({
@@ -132,18 +136,18 @@ export const useVisibleTimeRangeTrigger = () => {
 
     VTRChangeHandlerRef.current = (VTR) => {
       // Set live marker position
-      var live_marker_index = 0
+      var liveMarkerIndex = 0
       if (candles.length > 0 && !isLoading.current) {
-        const live_marker_coordinate = mainChartRef.current.clientWidth * config.candles.live_marker_offset_percentage
-        const live_marker_time = chart.timeScale().coordinateToTime(live_marker_coordinate)
-        const live_marker_time_constrained = 
-          (live_marker_time < candles[0].time) ? candles[0].time :
-          (live_marker_time > candles[candles.length - 1].time) ? candles[candles.length - 1].time :
-          live_marker_time
-        live_marker_index = (live_marker_time_constrained - candleStartTime.current) * 1000 / config.timeframe_to_ms[timeframe]
+        const liveMarkerCoordinate = mainChartRef.current.clientWidth * config.candles.live_marker_offset_percentage
+        const liveMarkerTime = chart.timeScale().coordinateToTime(liveMarkerCoordinate)
+        const liveMarkerTimeConstrained = 
+          (liveMarkerTime < candles[0].time) ? candles[0].time :
+          (liveMarkerTime > candles[candles.length - 1].time) ? candles[candles.length - 1].time :
+          liveMarkerTime
+        liveMarkerIndex = (liveMarkerTimeConstrained - candleStartTime.current) * 1000 / config.timeframe_to_ms[timeframe]
         series.candleSeries.setMarkers([
           {
-              time: live_marker_time_constrained,
+              time: liveMarkerTimeConstrained,
               position: 'aboveBar',
               color: '#000000',
               shape: 'arrowDown',
@@ -154,21 +158,21 @@ export const useVisibleTimeRangeTrigger = () => {
 
       // update highs
       if (highs.length > 0 && !isLoading.current && highLowVisible.current) {
-        const candleHighs = candles.filter(candle => highs[live_marker_index].high_history.includes(candle.time_ms))
+        const candleHighs = candles.filter(candle => highs[liveMarkerIndex].high_history.includes(candle.time_ms))
         series.highSeries.setData(candleHighs)
 
       }
 
       // update lows
       if (lows.length > 0 & !isLoading.current && highLowVisible.current) {
-        const candleLows = candles.filter(candle => lows[live_marker_index].low_history.includes(candle.time_ms))
+        const candleLows = candles.filter(candle => lows[liveMarkerIndex].low_history.includes(candle.time_ms))
         series.lowSeries.setData(candleLows)
       }
 
       // update resistance
       if (resistance.length > 0 && !isLoading.current && resSupVisible.current) {
         if (resPriceLines.current.length > 0) resPriceLines.current.map(line => series.candleSeries.removePriceLine(line))
-        resPriceLines.current = resistance[live_marker_index].top_history.map(top_price =>
+        resPriceLines.current = resistance[liveMarkerIndex].top_history.map(top_price =>
           series.candleSeries.createPriceLine({
             price: top_price,
             color: '#ef5350',
@@ -181,7 +185,7 @@ export const useVisibleTimeRangeTrigger = () => {
       // update support
       if (support.length > 0 && !isLoading.current && resSupVisible.current) {
         if (supPriceLines.current.length > 0) supPriceLines.current.map(line => series.candleSeries.removePriceLine(line))
-        supPriceLines.current = support[live_marker_index].bottom_history.map(bottom_price =>
+        supPriceLines.current = support[liveMarkerIndex].bottom_history.map(bottom_price =>
           series.candleSeries.createPriceLine({
             price: bottom_price,
             color: '#26a69a',
@@ -193,7 +197,7 @@ export const useVisibleTimeRangeTrigger = () => {
 
       // update retracement
       if (retracement.length > 0 && !isLoading.current) {
-        const current_retracement = retracement[live_marker_index]
+        const current_retracement = retracement[liveMarkerIndex]
         setRetracementDisplay(
           `High retracement = ${Math.round(current_retracement.high_retracement * 100)}%, ` +
           `Low retracement = ${Math.round(current_retracement.low_retracement * 100)}%`

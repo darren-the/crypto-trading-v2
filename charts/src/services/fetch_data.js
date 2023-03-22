@@ -7,19 +7,22 @@ export const fetchCandles = (
   timeframe,
   pipelineId,
   start,
-  end
+  end,
 ) => {
   const query_params = get_query_params_url(symbol, timeframe, pipelineId, start, end)
-  return axios.get(`${config.base_url}${config.candles.path}${query_params}`).then(response => {
+  const base_url = config.live_base_url
+  return axios.get(`${base_url}${config.candles.path}${query_params}`).then(response => {
     // Format candle data
     return response.data.data.map(element => {
       return {
-        time: element[0] / 1000,
-        time_ms: element[0],
-        open: element[1],
-        close: element[2],
-        high: element[3],
-        low: element[4],
+        base_time: element[0] / 1000,
+        time: element[1] / 1000,
+        time_ms: element[1],
+        open: element[2],
+        close: element[3],
+        high: element[4],
+        low: element[5],
+        is_complete: element[6],
       }
     })
 })
