@@ -4,7 +4,7 @@
   "candles": {
     "path": "/candles",
     "histFetchWindow": 10000,
-    "liveFetchWindow": 200000,
+    "liveFetchWindow": 10000,
     "defaultVisibleWindow": 500,
     "live_marker_offset_percentage": 0.75
   },

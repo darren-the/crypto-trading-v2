@@ -98,7 +98,7 @@ schema = {
     ]
 }
 dev_hist_start = '2022-01-01'
-dev_hist_end = '2022-04-01'
+dev_hist_end = '2023-01-01'
 hist_start = '2017-01-01'
 hist_end = '2023-03-01'
 bitfinex = {

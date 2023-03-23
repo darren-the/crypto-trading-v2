@@ -86,8 +86,10 @@ export const useUpdateLiveSeries = () => {
       // lastIndex.current = newCandles.length - 1
       setCandles(newCandles)
       if (loadMode === config.loadMode.TRUNCATE_ALL) {
-        // Set live index
+        // Reset live index
         liveIndex.current = newCandles.findIndex(candle => candle.base_time === truncTime / 1000) - 1
+      } else if (loadMode === config.loadMode.PREPEND) {
+        liveIndex.current = liveIndex.current + candleData.length
       }
       const histCandles = newCandles.slice(0, liveIndex.current + 1)
       liveCandles.current = histCandles.filter(candle => candle.is_complete)  // aggregate history

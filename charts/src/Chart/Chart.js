@@ -24,7 +24,6 @@ const Chart = () => {
     liveRef,
     candles,
     liveCandles,
-    unaggCandles,
     liveIndex,
   } = useContext(MainContext)
 
