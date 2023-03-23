@@ -31,7 +31,12 @@ class FetchCandles(Source):
             try:
                 candles = requests.get(self.url, params=payload).json()
             except:
-                raise Exception('Invalid request.')
+                raise Exception(f'''
+                    Invalid request.\n
+                    Arguments:\n
+                    \turl: {self.url}\n
+                    \tparams: {str(payload)}\n
+                ''')
 
             for candle in candles:
                 element = {

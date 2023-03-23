@@ -222,11 +222,21 @@ def datarange():
     # Fetch data from table
     cur.execute(f'''
         SELECT
-            COALESCE(MIN(timestamp), 0)
-            , COALESCE(MAX(timestamp), 0)
+            COALESCE(MIN(timestamp), 0) AS min_timestamp
+            , COALESCE(MAX(timestamp), 0) AS max_timestamp
         FROM {table_name}
     ''')
     query_result = cur.fetchall()
+
+    # Format timestamps if required
+    if args.get('time_format') is not None and args.get('time_format') == 'datetime':
+        formatted_query_result = []
+        for row in query_result:
+            formatted_row = list(row)
+            for i in range(len(formatted_row)):
+                formatted_row[i] = timestamp_to_date(formatted_row[i] / 1000) if formatted_row[i] > 0 else formatted_row[i]
+            formatted_query_result.append(formatted_row)
+        query_result = formatted_query_result
 
     # Commit the transaction
     conn.commit()
