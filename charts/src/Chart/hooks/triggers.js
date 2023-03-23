@@ -56,8 +56,7 @@ export const useTimeframeTrigger = () => {
       startOfDataFlag.current = false
       endOfDataFlag.current = false
       // get truncate time
-      const lastCandle = liveCandles.current[liveCandles.current.length - 1]
-      const truncTime = (lastCandle.is_complete) ? lastCandle.time_ms : liveCandles.current[liveCandles.current.length - 2].time_ms
+      const truncTime = liveCandles.current[liveCandles.current.length - 1].base_time * 1000 + config.base_ms
       setTruncTime(truncTime)
       setLoadMode(config.loadMode.TRUNCATE_ALL)
       Object.entries(series).forEach(([k,v]) => {

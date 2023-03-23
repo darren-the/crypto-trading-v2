@@ -42,6 +42,7 @@
     "4h": 14400000,
     "1D": 86400000
   },
+  "base_ms": 60000,
   "defaultTimeframe": "1h",
   "loadMode": {
     "NONE": 0,
