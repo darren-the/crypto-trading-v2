@@ -89,7 +89,11 @@ export const useUpdateLiveSeries = () => {
         // Set live index
         liveIndex.current = newCandles.findIndex(candle => candle.base_time === truncTime / 1000) - 1
       }
-      liveCandles.current = newCandles.slice(0, liveIndex.current + 1).filter(candle => candle.is_complete)
+      const histCandles = newCandles.slice(0, liveIndex.current + 1)
+      liveCandles.current = histCandles.filter(candle => candle.is_complete)  // aggregate history
+      // append last candle if incomplete
+      const lastCandle = histCandles[histCandles.length - 1]
+      if (!lastCandle.is_complete) liveCandles.current.push(lastCandle)
       series.candleSeries.setData(liveCandles.current)
 
       // set visible range

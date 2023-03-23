@@ -19,8 +19,8 @@ import os
 
 def run(pipeline_id):
     os.environ['PIPELINE_ID'] = str(pipeline_id)
-    os.environ['PIPELINE_START'] = str(date_str_to_timestamp(config.local_hist_start))
-    os.environ['PIPELINE_END'] = str(date_str_to_timestamp(config.local_hist_end))
+    os.environ['PIPELINE_START'] = str(date_str_to_timestamp(config.dev_hist_start))
+    os.environ['PIPELINE_END'] = str(date_str_to_timestamp(config.dev_hist_end))
 
     fetch_candles = {}
     for s in config.symbols:

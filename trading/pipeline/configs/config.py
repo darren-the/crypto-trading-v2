@@ -97,10 +97,10 @@ schema = {
         'high_low_price_history TEXT NOT NULL',
     ]
 }
-dev_hist_start = '2014-01-01'
-dev_hist_end = '2023-03-01'
-local_hist_start = '2017-01-01'
-local_hist_end = '2023-03-01'
+dev_hist_start = '2022-01-01'
+dev_hist_end = '2022-04-01'
+hist_start = '2017-01-01'
+hist_end = '2023-03-01'
 bitfinex = {
     'base_url': 'https://api-pub.bitfinex.com/v2',
     'candle_url': {
