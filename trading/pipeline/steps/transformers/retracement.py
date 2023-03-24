@@ -15,6 +15,7 @@ class Retracement(Task):
             'candle_timestamp': element['candle_timestamp'],
             'high_retracement': 0,
             'low_retracement': 0,
+            'is_complete': element['is_complete'],
         }
 
         high_low_history = parse_high_low_history(element)

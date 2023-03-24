@@ -1,90 +1,34 @@
-import Chart from './Chart/'
-import { MainContext } from './context'
-import { useState, useRef } from 'react'
-import config from './config.json'
+import { useState } from 'react'
+import { Context } from './context'
+import { useCreateSeries } from './hooks/useCreateSeries'
+import ChartContainer from './components/ChartContainer'
+import DisplayControls from './components/DisplayControls/DisplayControls'
+import { useCreateDfComponents } from './hooks/useCreateDfComponents'
+import DfContainer from './components/DfContainer/DfContainer'
 
-function App() {
-  const [chart, setChart] = useState(null)
-  const [series, setSeries] = useState(null)
-  const [timeframe, setTimeframe] = useState(config.defaultTimeframe)
-  const [timestamp, setTimestamp] = useState(null)
-  const [truncTime, setTruncTime] = useState(null)
-  const [loadMode, setLoadMode] = useState(config.loadMode.NONE)
-  const [candles, setCandles] = useState([])
-  const [highs, setHighs] = useState([])
-  const [lows, setLows] = useState([])
-  const [resistance, setResistance] = useState([])
-  const [support, setSupport] = useState([])
-  const [toggleHighLow, setToggleHighLow] = useState(true)
-  const [toggleResSup, setToggleResSup] = useState(true)
+const App = () => {
+  const [mainChart, setMainChart] = useState(null)
   const [rsiChart, setRsiChart] = useState(null)
-  const [rsi, setRsi] = useState([])
-  const [pipelineId, setPipelineId] = useState('main')
-  const [symbol, setSymbol] = useState('btcusd')
-  const [retracement, setRetracement] = useState([])
-  const [retracementDisplay, setRetracementDisplay] = useState('No current retracement')
-
   const variables = {
-    mainChartRef: useRef(),
-    chart,
-    setChart,
-    series,
-    setSeries,
-    timeframe,
-    setTimeframe,
-    timestamp,
-    setTimestamp,
-    truncTime,
-    setTruncTime,
-    loadMode,
-    setLoadMode,
-    candleStartTime: useRef(true),
-    lastIndex: useRef(null),
-    startOfDataFlag: useRef(false),
-    endOfDataFlag: useRef(false),
-    isLoading: useRef(false),
-    candles,
-    setCandles,
-    initialRender: useRef(true),
-    highs,
-    setHighs,
-    lows,
-    setLows,
-    resistance,
-    setResistance,
-    support,
-    setSupport,
-    toggleHighLow,
-    setToggleHighLow,
-    VTRChangeHandlerRef: useRef(null),
-    resSupVisible: useRef(true),
-    resPriceLines:useRef([]),
-    supPriceLines: useRef([]),
-    toggleResSup,
-    setToggleResSup,
-    rsiChartRef: useRef(),
-    rsiChart, 
+    mainChart,
+    setMainChart,
+    rsiChart,
     setRsiChart,
-    rsi,
-    setRsi,
-    pipelineId,
-    setPipelineId,
-    symbol,
-    setSymbol,
-    retracement,
-    setRetracement,
-    retracementDisplay,
-    setRetracementDisplay,
-    highLowVisible: useRef(true),
+    series: useCreateSeries(mainChart, rsiChart),
+    ...useCreateDfComponents(),
   }
 
   return (
-    <div className="App">
-      <MainContext.Provider value={variables}>
-        <Chart />
-      </MainContext.Provider>
+    <div className="App" style={{ height: '100vh' }}>
+      <Context.Provider value={variables}>
+        <ChartContainer />
+        <div style={{ display: 'flex', width: '100%' }}>
+          <DisplayControls />
+          <DfContainer />
+        </div>
+      </Context.Provider>
     </div>
   );
 }
 
-export default App
+export default App;

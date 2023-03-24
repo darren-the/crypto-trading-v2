@@ -18,7 +18,8 @@ class HighLow(Task):
             'is_low': False,
             'low_timestamp': -1,
             'low_top': -1,
-            'low_bottom': -1
+            'low_bottom': -1,
+            'is_complete': False,
         }
         self.alpha = 0
         super().__init__()
@@ -26,6 +27,7 @@ class HighLow(Task):
     def process(self, element):
         self.high_low['timestamp'] = element['timestamp']
         self.high_low['candle_timestamp'] = element['candle_timestamp']
+        self.high_low['is_complete'] = element['is_complete']
         if self.high_low['is_high']:
             self._reset_high()
         if self.high_low['is_low']:

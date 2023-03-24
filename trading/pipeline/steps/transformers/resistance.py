@@ -12,7 +12,7 @@ class Resistance(Task):
             'num_highs': 0,
             'top': -1,
             'bottom': -1,
-            'top_history': ''
+            'top_history': '',
         }
         self.res_history = []
         super().__init__()
@@ -54,6 +54,7 @@ class Resistance(Task):
         
         res['timestamp'] = element['timestamp']
         res['candle_timestamp'] = element['candle_timestamp']
+        res['is_complete'] = element['is_complete']
         
         # Filter top history by num_highs
         filtered_res = []

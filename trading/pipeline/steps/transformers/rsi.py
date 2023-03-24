@@ -34,6 +34,7 @@ class RSI(Task):
             'timestamp': element['timestamp'],
             'candle_timestamp': element['candle_timestamp'],
             'rsi': round(rsi_value, 2),
+            'is_complete': element['is_complete'],
         }
 
         return rsi

@@ -53,6 +53,7 @@ schema = {
         'low_timestamp NUMERIC NOT NULL',
         'low_top NUMERIC NOT NULL',
         'low_bottom NUMERIC NOT NULL',
+        'is_complete BOOL NOT NULL',
     ],
     'resistance': [
         'timestamp NUMERIC PRIMARY KEY',
@@ -64,6 +65,7 @@ schema = {
         'top NUMERIC NOT NULL',
         'bottom NUMERIC NOT NULL',
         'top_history TEXT NOT NULL',
+        'is_complete BOOL NOT NULL',
     ],
     'support': [
         'timestamp NUMERIC PRIMARY KEY',
@@ -75,17 +77,20 @@ schema = {
         'top NUMERIC NOT NULL',
         'bottom NUMERIC NOT NULL',
         'bottom_history TEXT NOT NULL',
+        'is_complete BOOL NOT NULL',
     ],
     'rsi': [
         'timestamp NUMERIC PRIMARY KEY',
         'candle_timestamp NUMERIC NOT NULL',
         'rsi NUMERIC NOT NULL',
+        'is_complete BOOL NOT NULL',
     ],
     'retracement': [
         'timestamp NUMERIC PRIMARY KEY',
         'candle_timestamp NUMERIC NOT NULL',
         'high_retracement NUMERIC NOT NULL',
         'low_retracement NUMERIC NOT NULL',
+        'is_complete BOOL NOT NULL',
     ],
     'highlowhistory': [
         'timestamp NUMERIC PRIMARY KEY',
@@ -95,12 +100,11 @@ schema = {
         'high_low_type_history TEXT NOT NULL',
         'high_low_timestamp_history TEXT NOT NULL',
         'high_low_price_history TEXT NOT NULL',
+        'is_complete BOOL NOT NULL',
     ]
 }
-dev_hist_start = '2014-01-01'
+dev_hist_start = '2022-01-01'
 dev_hist_end = '2023-03-01'
-local_hist_start = '2017-01-01'
-local_hist_end = '2023-03-01'
 bitfinex = {
     'base_url': 'https://api-pub.bitfinex.com/v2',
     'candle_url': {

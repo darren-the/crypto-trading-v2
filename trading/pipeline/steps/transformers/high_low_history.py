@@ -72,6 +72,7 @@ class HighLowHistory(Task):
             'high_low_type_history': ','.join(high_low_types),
             'high_low_timestamp_history': ','.join(high_low_timestamps),
             'high_low_price_history': ','.join(high_low_prices),
+            'is_complete': element['is_complete'],
         }
         
 

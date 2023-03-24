@@ -1,8 +1,10 @@
 {
-  "base_url": "http://localhost:4500/charts",
+  "api": {
+    "base_url": "http://localhost:4500/charts",
+    "fetchWindow": 50000
+  },
   "candles": {
     "path": "/candles",
-    "fetchWindow": 10000,
     "defaultVisibleWindow": 500,
     "live_marker_offset_percentage": 0.75
   },
@@ -32,7 +34,9 @@
     "4h",
     "1D"
   ],
-  "timeframe_to_ms": {
+  "baseMs": 60000,
+  "baseTimeframe": "1m",
+  "timeframeToMs": {
     "1m": 60000,
     "5m": 300000,
     "15m": 900000,
@@ -40,11 +44,17 @@
     "4h": 14400000,
     "1D": 86400000
   },
-  "defaultTimeframe": "1h",
-  "loadMode": {
+  "defaultPipelineId": "main",
+  "defaultSymbol": "btcusd",
+  "defaultTimeframe": "5m",
+  "updateMethod": {
     "NONE": 0,
     "TRUNCATE_ALL": 1,
     "APPEND": 2,
     "PREPEND": 3
-  }
+  },
+  "dispatchOrder": [
+    "candles",
+    "highs"
+  ]
 }
