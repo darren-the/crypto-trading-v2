@@ -25,6 +25,7 @@ const Chart = () => {
     candles,
     liveCandles,
     liveIndex,
+    features,
   } = useContext(MainContext)
 
   /* ==================== CHARTING HOOKS ==================== */
@@ -77,25 +78,13 @@ const Chart = () => {
   // Live back
   const liveBackClick = () => {
     if (!liveRef.current) return
-    liveIndex.current--
-    if (candles[liveIndex.current].time < candles[liveIndex.current + 1].time) {
-      liveCandles.current.pop()
-    } else if (candles[liveIndex.current].time === candles[liveIndex.current + 1].time) {
-      liveCandles.current[liveCandles.current.length - 1] = candles[liveIndex.current]
-    }
-    series.candleSeries.setData(liveCandles.current)
+    features.Candles.incrementSeries({ direction: 0 })
   }
 
   // Live forward
   const liveForwardClick = () => {
     if (!liveRef.current) return
-    liveIndex.current++
-    if (candles[liveIndex.current - 1].time < candles[liveIndex.current].time) {
-      liveCandles.current.push(candles[liveIndex.current])
-    } else if (candles[liveIndex.current - 1].time === candles[liveIndex.current].time) {
-      liveCandles.current[liveCandles.current.length - 1] = candles[liveIndex.current]
-    }
-    series.candleSeries.setData(liveCandles.current)
+    features.Candles.incrementSeries({ direction: 1 })
   }
 
   return (

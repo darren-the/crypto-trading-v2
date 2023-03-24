@@ -2,6 +2,7 @@ import Chart from './Chart/'
 import { MainContext } from './context'
 import { useState, useRef } from 'react'
 import config from './config.json'
+import { Candles } from './Chart/features/candles'
 
 function App() {
   const [chart, setChart] = useState(null)
@@ -24,7 +25,15 @@ function App() {
   const [retracement, setRetracement] = useState([])
   const [retracementDisplay, setRetracementDisplay] = useState('No current retracement')
 
-  const variables = {
+  // ====== LIST ALL FEATURES HERE ======
+  const featureClasses = [
+    Candles,
+  ]
+  // ====================================
+
+  const [featureState, setFeatureState] = useState(Object.fromEntries(featureClasses.map(featureClass => [featureClass.name, []])))
+  
+  const context = {
     mainChartRef: useRef(),
     chart,
     setChart,
@@ -79,11 +88,14 @@ function App() {
     liveRef: useRef(true),
     liveIndex: useRef(0),
     liveCandles: useRef([]),
+
+    // new stuff
   }
+  context.features = Object.fromEntries(featureClasses.map(featureClass => [featureClass.name, new featureClass({ context, featureState, setFeatureState} )]))
 
   return (
     <div className="App">
-      <MainContext.Provider value={variables}>
+      <MainContext.Provider value={context}>
         <Chart />
       </MainContext.Provider>
     </div>

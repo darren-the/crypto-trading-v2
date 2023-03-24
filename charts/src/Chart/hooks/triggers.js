@@ -14,6 +14,7 @@ export const useTimestampTrigger = () => {
     series,
     isLoading,
   } = useContext(MainContext)
+  // THIS COULD BE REFACTORED, no need to be a useeffect
   
   useEffect(() => {
     if (timestamp != null) {
@@ -47,11 +48,12 @@ export const useTimeframeTrigger = () => {
     setLoadMode,
     isLoading,
     liveCandles,
+    features,
   } = useContext(MainContext)
-
+  // THIS COULD BE REFACTORED, no need to be a useeffect
   useEffect(() => {
     if (initialRender.current) initialRender.current = false
-    else if (chart == null || series == null || candles.length === 0) return
+    else if (chart == null || series == null || features.Candles.state.length === 0) return
     else {
       startOfDataFlag.current = false
       endOfDataFlag.current = false

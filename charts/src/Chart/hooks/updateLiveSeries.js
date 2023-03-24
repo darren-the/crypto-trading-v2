@@ -6,6 +6,7 @@ import { MainContext } from '../../context'
 
 
 export const useUpdateLiveSeries = () => {
+  const context = useContext(MainContext)
   const {
     chart,
     series,
@@ -13,30 +14,12 @@ export const useUpdateLiveSeries = () => {
     truncTime,
     loadMode,
     setLoadMode,
-    candleStartTime,
-    lastIndex,
-    startOfDataFlag,
     endOfDataFlag,
     isLoading,
-    candles,
-    setCandles,
-    highs,
-    setHighs,
-    lows,
-    setLows,
-    resistance,
-    setResistance,
-    support,
-    setSupport,
     rsi,
-    setRsi,
-    pipelineId,
-    symbol,
-    retracement,
-    setRetracement,
-    liveIndex,
-    liveCandles,
-  } = useContext(MainContext)
+    // new stuff
+    features,
+  } = context
 
   useEffect(() => {
     if (loadMode === config.loadMode.NONE || series == null) return
@@ -46,11 +29,11 @@ export const useUpdateLiveSeries = () => {
     var end = null
     var concatMethod = (data) => data
 
-    // configure start/end window to fetch data. Also configure concatenation method.
+    // configure start/end window for fetching data and configure concatenation method.
     if (loadMode === config.loadMode.PREPEND) {
-      end = candles[0].time_ms
+      end = features.Candles.state[0].time_ms
       start = end - (config.timeframe_to_ms[timeframe] * config.candles.liveFetchWindow)
-      concatMethod = (newData, oldData) => newData.concat(oldData)
+      concatMethod = (oldData, newData) => newData.concat(oldData)
 
     } else if (loadMode === config.loadMode.APPEND) {
       // APPEND is disabled for live chart
@@ -61,42 +44,11 @@ export const useUpdateLiveSeries = () => {
     } else if (loadMode === config.loadMode.TRUNCATE_ALL) {
       start = truncTime - (config.timeframe_to_ms[timeframe] * config.candles.liveFetchWindow / 2)
       end = truncTime + (config.timeframe_to_ms[timeframe] * config.candles.liveFetchWindow / 2)
-      concatMethod = (newData, oldData) => newData
+      concatMethod = (oldData, newData) => newData
     }
 
     const updateSeries = async () => {
-      const candleData = await fetchCandles(symbol, timeframe, pipelineId, start, end)
-
-      // Check whether there is anymore data to be fetched
-      if (candleData.length === 0) {
-        if (loadMode === config.loadMode.PREPEND) {
-          console.log('start of data')
-          startOfDataFlag.current = true
-        }
-        if (loadMode === config.loadMode.APPEND) {
-          console.log('end of data')
-          endOfDataFlag.current = true
-        }
-        if (loadMode === config.loadMode.TRUNCATE_ALL) console.log('Invalid range: No data in database for this range')
-      }
-
-      // update candles
-      const newCandles = concatMethod(candleData, candles)
-      // candleStartTime.current = newCandles[0].time
-      // lastIndex.current = newCandles.length - 1
-      setCandles(newCandles)
-      if (loadMode === config.loadMode.TRUNCATE_ALL) {
-        // Reset live index
-        liveIndex.current = newCandles.findIndex(candle => candle.base_time === truncTime / 1000) - 1
-      } else if (loadMode === config.loadMode.PREPEND) {
-        liveIndex.current = liveIndex.current + candleData.length
-      }
-      const histCandles = newCandles.slice(0, liveIndex.current + 1)
-      liveCandles.current = histCandles.filter(candle => candle.is_complete)  // aggregate history
-      // append last candle if incomplete
-      const lastCandle = histCandles[histCandles.length - 1]
-      if (!lastCandle.is_complete) liveCandles.current.push(lastCandle)
-      series.candleSeries.setData(liveCandles.current)
+      await features.Candles.update({ start, end, concatMethod })
 
       // set visible range
       if (loadMode === config.loadMode.TRUNCATE_ALL) {
@@ -112,12 +64,12 @@ export const useUpdateLiveSeries = () => {
           visible: true
         })
       })
-      
+
       isLoading.current = false
     }
 
     updateSeries()
 
   // eslint-disable-next-line
-  }, [loadMode, candles, rsi])
+  }, [loadMode, features, rsi])
 }
