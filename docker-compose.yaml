@@ -14,7 +14,7 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - ./charts:/app
+      - ./charts/src:/app/src
 
   redis:
     image: redis:7.0.9

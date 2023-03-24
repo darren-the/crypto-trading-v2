@@ -12,7 +12,7 @@ class Support(Task):
             'num_lows': 0,
             'top': -1,
             'bottom': -1,
-            'bottom_history': ''
+            'bottom_history': '',
         }
         self.sup_history = []
         super().__init__()
@@ -54,6 +54,7 @@ class Support(Task):
         
         sup['timestamp'] = element['timestamp']
         sup['candle_timestamp'] = element['candle_timestamp']
+        sup['is_complete'] = element['is_complete']
 
         # Filter bottom history by num_lows
         filtered_sup = []

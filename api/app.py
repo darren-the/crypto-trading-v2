@@ -184,7 +184,10 @@ def data(table):
         for row in query_result:
             formatted_row = list(row)
             for i in time_indices:
-                formatted_row[i] = timestamp_to_date(formatted_row[i] / 1000) if formatted_row[i] > 0 else formatted_row[i]
+                try:
+                    formatted_row[i] = timestamp_to_date(formatted_row[i] / 1000) if formatted_row[i] > 0 else formatted_row[i]
+                except:
+                    pass
             formatted_query_result.append(formatted_row)
         query_result = formatted_query_result
     
@@ -327,25 +330,18 @@ def chart_candles():
     # Fetch data from table
     QUERY = f'''
         SELECT
-            candle_timestamp
+            timestamp
+            , candle_timestamp
             , open
             , close
             , high
             , low
-        FROM (
-            SELECT
-                *
-                , ROW_NUMBER() OVER (
-                    PARTITION BY candle_timestamp
-                    ORDER BY timestamp DESC
-                ) AS row_number
-            FROM {args.get('symbol')}_candles_{args.get('timeframe')}_{args.get('pipeline_id')}
-            WHERE
-                candle_timestamp >= {args.get('start')}
-                AND candle_timestamp < {args.get('end')}
-        ) AS candles
-        WHERE row_number = 1 
-        ORDER BY candle_timestamp
+            , is_complete
+        FROM {args.get('symbol')}_candles_{args.get('timeframe')}_{args.get('pipeline_id')}
+        WHERE
+            timestamp >= {args.get('start')}
+            AND timestamp < {args.get('end')}
+        ORDER BY timestamp
     '''
 
     cur.execute(QUERY)
@@ -382,23 +378,15 @@ def chart_highs():
     # Fetch data from table
     QUERY = f'''
         SELECT
-            candle_timestamp
+            timestamp
+            , candle_timestamp
             , high_timestamp_history
-        FROM (
-            SELECT
-                candle_timestamp
-                , high_timestamp_history
-                , ROW_NUMBER() OVER (
-                    PARTITION BY candle_timestamp
-                    ORDER BY timestamp DESC
-                ) AS row_number
-            FROM {args.get('symbol')}_high_low_history_{args.get('timeframe')}_{args.get('pipeline_id')}
-            WHERE
-                candle_timestamp >= {args.get('start')}
-                AND candle_timestamp < {args.get('end')}
-        ) AS highs
-        WHERE row_number = 1 
-        ORDER BY candle_timestamp
+            , is_complete
+        FROM {args.get('symbol')}_high_low_history_{args.get('timeframe')}_{args.get('pipeline_id')}
+        WHERE
+            timestamp >= {args.get('start')}
+            AND timestamp < {args.get('end')}
+        ORDER BY timestamp
     '''
 
     cur.execute(QUERY)
@@ -435,23 +423,15 @@ def chart_lows():
     # Fetch data from table
     QUERY = f'''
         SELECT
-            candle_timestamp
+            timestamp
+            , candle_timestamp
             , low_timestamp_history
-        FROM (
-            SELECT
-                candle_timestamp
-                , low_timestamp_history
-                , ROW_NUMBER() OVER (
-                    PARTITION BY candle_timestamp
-                    ORDER BY timestamp DESC
-                ) AS row_number
-            FROM {args.get('symbol')}_high_low_history_{args.get('timeframe')}_{args.get('pipeline_id')}
-            WHERE
-                candle_timestamp >= {args.get('start')}
-                AND candle_timestamp < {args.get('end')}
-        ) AS lows
-        WHERE row_number = 1 
-        ORDER BY candle_timestamp
+            , is_complete
+        FROM {args.get('symbol')}_high_low_history_{args.get('timeframe')}_{args.get('pipeline_id')}
+        WHERE
+            timestamp >= {args.get('start')}
+            AND timestamp < {args.get('end')}
+        ORDER BY timestamp
     '''
 
     cur.execute(QUERY)
@@ -488,23 +468,15 @@ def chart_resistance():
     # Fetch data from table
     QUERY = f'''
         SELECT
-            candle_timestamp
+            timestamp
+            , candle_timestamp
             , top_history
-        FROM (
-            SELECT
-                candle_timestamp
-                , top_history
-                , ROW_NUMBER() OVER (
-                    PARTITION BY candle_timestamp
-                    ORDER BY timestamp DESC
-                ) AS row_number
-            FROM {args.get('symbol')}_resistance_{args.get('timeframe')}_{args.get('pipeline_id')}
-            WHERE
-                candle_timestamp >= {args.get('start')}
-                AND candle_timestamp < {args.get('end')}
-        ) AS resistance
-        WHERE row_number = 1 
-        ORDER BY candle_timestamp
+            , is_complete
+        FROM {args.get('symbol')}_resistance_{args.get('timeframe')}_{args.get('pipeline_id')}
+        WHERE
+            timestamp >= {args.get('start')}
+            AND timestamp < {args.get('end')}
+        ORDER BY timestamp
     '''
 
     cur.execute(QUERY)
@@ -541,23 +513,15 @@ def chart_support():
     # Fetch data from table
     QUERY = f'''
         SELECT
-            candle_timestamp
+            timestamp
+            , candle_timestamp
             , bottom_history
-        FROM (
-            SELECT
-                candle_timestamp
-                , bottom_history
-                , ROW_NUMBER() OVER (
-                    PARTITION BY candle_timestamp
-                    ORDER BY timestamp DESC
-                ) AS row_number
-            FROM {args.get('symbol')}_support_{args.get('timeframe')}_{args.get('pipeline_id')}
-            WHERE
-                candle_timestamp >= {args.get('start')}
-                AND candle_timestamp < {args.get('end')}
-        ) AS support
-        WHERE row_number = 1 
-        ORDER BY candle_timestamp
+            , is_complete
+        FROM {args.get('symbol')}_support_{args.get('timeframe')}_{args.get('pipeline_id')}
+        WHERE
+            timestamp >= {args.get('start')}
+            AND timestamp < {args.get('end')}
+        ORDER BY timestamp
     '''
 
     cur.execute(QUERY)
@@ -594,23 +558,15 @@ def chart_rsi():
     # Fetch data from table
     QUERY = f'''
         SELECT
-            candle_timestamp
+            timestamp
+            , candle_timestamp
             , rsi
-        FROM (
-            SELECT
-                candle_timestamp
-                , rsi
-                , ROW_NUMBER() OVER (
-                    PARTITION BY candle_timestamp
-                    ORDER BY timestamp DESC
-                ) AS row_number
-            FROM {args.get('symbol')}_rsi_{args.get('timeframe')}_{args.get('pipeline_id')}
-            WHERE
-                candle_timestamp >= {args.get('start')}
-                AND candle_timestamp < {args.get('end')}
-        ) AS rsi
-        WHERE row_number = 1 
-        ORDER BY candle_timestamp
+            , is_complete
+        FROM {args.get('symbol')}_rsi_{args.get('timeframe')}_{args.get('pipeline_id')}
+        WHERE
+            timestamp >= {args.get('start')}
+            AND timestamp < {args.get('end')}
+        ORDER BY timestamp
     '''
 
     cur.execute(QUERY)
@@ -647,25 +603,16 @@ def chart_retracement():
     # Fetch data from table
     QUERY = f'''
         SELECT
-            candle_timestamp
+            timestamp
+            , candle_timestamp
             , high_retracement
             , low_retracement
-        FROM (
-            SELECT
-                candle_timestamp
-                , high_retracement
-                , low_retracement
-                , ROW_NUMBER() OVER (
-                    PARTITION BY candle_timestamp
-                    ORDER BY timestamp DESC
-                ) AS row_number
-            FROM {args.get('symbol')}_retracement_{args.get('timeframe')}_{args.get('pipeline_id')}
-            WHERE
-                candle_timestamp >= {args.get('start')}
-                AND candle_timestamp < {args.get('end')}
-        ) AS retracement
-        WHERE row_number = 1 
-        ORDER BY candle_timestamp
+            , is_complete
+        FROM {args.get('symbol')}_retracement_{args.get('timeframe')}_{args.get('pipeline_id')}
+        WHERE
+            timestamp >= {args.get('start')}
+            AND timestamp < {args.get('end')}
+        ORDER BY timestamp
     '''
 
     cur.execute(QUERY)
