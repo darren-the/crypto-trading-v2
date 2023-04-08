@@ -54,15 +54,22 @@ class HighLowHistory(Task):
         high_low_types = []
         high_low_timestamps = []
         high_low_prices = []
+        high_low_confirmed = []
         for hl in self.history:
             high_low_types.append(hl['type'])
             high_low_timestamps.append(str(hl['timestamp']))
             if hl['type'] == 'high':
                 high_timestamps.append(str(hl['timestamp']))
                 high_low_prices.append(str(hl['top']))
+                
+                # convert confirmed boolean to a 0 or 1
+                high_low_confirmed.append('1' if hl['confirmed'] else '0')
             else:
                 low_timestamps.append(str(hl['timestamp']))
                 high_low_prices.append(str(hl['bottom']))
+
+                # convert confirmed boolean to a 0 or 1
+                high_low_confirmed.append('1' if hl['confirmed'] else '0')
 
         return {
             'timestamp': element['timestamp'],
@@ -72,9 +79,9 @@ class HighLowHistory(Task):
             'high_low_type_history': ','.join(high_low_types),
             'high_low_timestamp_history': ','.join(high_low_timestamps),
             'high_low_price_history': ','.join(high_low_prices),
+            'high_low_confirmed_history': ','.join(high_low_confirmed), 
             'is_complete': element['is_complete'],
         }
-        
 
     def _get_high(self, element):
         return {

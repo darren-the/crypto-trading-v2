@@ -100,6 +100,7 @@ schema = {
         'high_low_type_history TEXT NOT NULL',
         'high_low_timestamp_history TEXT NOT NULL',
         'high_low_price_history TEXT NOT NULL',
+        'high_low_confirmed_history TEXT NOT NULL',
         'is_complete BOOL NOT NULL',
     ]
 }

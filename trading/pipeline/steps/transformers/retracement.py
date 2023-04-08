@@ -28,12 +28,12 @@ class Retracement(Task):
             if hl['type'] == 'high':
                 if len(last_low_then_high) == 0:
                     last_low_then_high.insert(0, hl)
-                if len(last_high_then_low) == 1:
+                if len(last_high_then_low) == 1 and hl['confirmed']:
                     last_high_then_low.insert(0, hl)
             else:
                 if len(last_high_then_low) == 0:
                     last_high_then_low.insert(0, hl)
-                if len(last_low_then_high) == 1:
+                if len(last_low_then_high) == 1 and hl['confirmed']:
                     last_low_then_high.insert(0, hl)
             if len(last_high_then_low) == 2 and len(last_low_then_high) == 2:
                 break
