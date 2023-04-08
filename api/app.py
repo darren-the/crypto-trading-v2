@@ -75,6 +75,7 @@ def delete_table():
     args = request.args
     table_name = args.get('table')
     pipeline_id = args.get('pipeline_id')
+    table_group = args.get('table_group')
 
     # Connect to the PostgreSQL database
     conn = psycopg2.connect(
@@ -86,9 +87,9 @@ def delete_table():
     cur = conn.cursor()
 
     # Delete table(s)
-    if pipeline_id is None:
+    if table_name is not None:
         cur.execute(f'DROP TABLE IF EXISTS {table_name};')
-    else:
+    elif pipeline_id is not None:
         cur.execute(f'''
             SELECT table_name
             FROM information_schema.tables
@@ -97,16 +98,24 @@ def delete_table():
         table_names_to_delete = cur.fetchall()
         for table in table_names_to_delete:
             cur.execute(f'DROP TABLE IF EXISTS {table[0]}')
-
+    elif table_group is not None:
+        cur.execute(f'''
+            SELECT table_name
+            FROM information_schema.tables
+            WHERE table_name LIKE '{table_group}%';
+        ''')
+        table_names_to_delete = cur.fetchall()
+        for table in table_names_to_delete:
+            cur.execute(f'DROP TABLE IF EXISTS {table[0]}')
     # Commit the transaction
     conn.commit()
 
     cur.close()
     conn.close()
 
-    if pipeline_id is None:
+    if table_name is not None:
         return f'Table \'{table_name}\' has been deleted'
-    else:
+    elif pipeline_id is not None or table_group is not None:
         return table_names_to_delete
 
 
