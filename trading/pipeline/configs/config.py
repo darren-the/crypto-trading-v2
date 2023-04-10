@@ -1,16 +1,16 @@
 local_env_data = './data'
 symbols = ['BTCUSD']
 timeframes = [
-    '1m',
+    # '1m',
     '5m',
-    '15m',
+    # '15m',
     # '30m',
-    '1h',
+    # '1h',
     # '2h',
-    '4h',
+    # '4h',
     # '6h',
     # '12h',
-    '1D',
+    # '1D',
     # '2D',
 ]
 base_timeframe = '1m'
@@ -105,7 +105,7 @@ schema = {
     ]
 }
 dev_hist_start = '2022-01-01'
-dev_hist_end = '2023-03-01'
+dev_hist_end = '2022-03-01'
 bitfinex = {
     'base_url': 'https://api-pub.bitfinex.com/v2',
     'candle_url': {
