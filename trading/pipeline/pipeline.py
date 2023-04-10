@@ -16,6 +16,8 @@ from pipeline.steps.transformers.high_low_history import HighLowHistory
 
 import os
 
+from pipeline.base_classes.source import Source
+
 
 def run(pipeline_id):
     os.environ['PIPELINE_ID'] = str(pipeline_id)
@@ -77,12 +79,16 @@ def run(pipeline_id):
                 history_length=10,
             )
 
-            # Organise dependencies
+            # set dependencies
             fetch_candles[s] >> aggregate_candles[s][t] >> [high_low[s][t], rsi[s][t]]
             high_low[s][t] >> [resistance[s][t], support[s][t]]
             [aggregate_candles[s][t], high_low[s][t]] >> high_low_history[s][t]
             [aggregate_candles[s][t], high_low_history[s][t]] >> retracement[s][t]
 
     
-    for s in config.symbols:
-        fetch_candles[s].activate()
+    # for s in config.symbols:
+    #     fetch_candles[s].activate()
+
+    source = Source()
+    source.start_source()
+    

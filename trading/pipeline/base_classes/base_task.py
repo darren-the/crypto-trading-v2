@@ -1,16 +1,27 @@
 import requests
-from pipeline.configs import config
+from pipeline.configs import config, task_config
 import os
 
 
 class BaseTask:
     def __init__(self):
+        # task variables
+        self.output_element = None
+        self.output_tasks = []
+        self.input_tasks = []
+        self.status = task_config.UNACTIVATED
+        self.task_type = task_config.TASK
+        self.iteration_status = task_config.IDLE
+
         # logging
         if not hasattr(self, 'logging'):
             self.logging = False
         
         if self.logging:
             self._open_log()
+
+        # data checks
+        self.data_exists = False
 
     def __rshift__(self, other):
         if BaseTask in other.__class__.__mro__:
@@ -56,17 +67,17 @@ class BaseTask:
         )
     
     def _get_data(self, start, end):
-        r = requests.get(url=f'{config.api_base_url}/data/{self.table}?start={start}&end={end}').json()
+        r = requests.get(url=f'{config.api_base_url}/data/{self.table}?start={start}&end={end}&data_format=dict').json()
         return r['data']
 
     def _db_source(self):
         db_limit = 50_000
-        for i in range(self.start, self.end, db_limit * self.interval):
+        for i in range(self.start, self.end, db_limit * config.base_ms):
             batch_start = i
-            batch_end = min(i + db_limit * self.interval, self.end)
+            batch_end = min(i + db_limit * config.base_ms, self.end)
             data = self._get_data(batch_start, batch_end)
             for row in data:
-                yield {field: value for field, value in zip(self.fields, row)}
+                yield row
         
         yield None
 
@@ -80,3 +91,4 @@ class BaseTask:
     
     def _close_log(self):
         self.log_file.close()
+    

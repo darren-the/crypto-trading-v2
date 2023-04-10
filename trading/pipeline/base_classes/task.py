@@ -1,25 +1,32 @@
-from pipeline.configs import config
+from pipeline.configs import config, task_config
 import os
 from pipeline.base_classes.base_task import BaseTask
 from pipeline.utils.row_formatters import Psycopg2Formatter
 import requests
 
+tasks_obj = {}
 
 class Task(BaseTask):
     def __init__(self):
-        self.output_element = None
-        self.input_tasks = []
-        self.output_tasks = []
+        super().__init__()
 
-        # metadata
+        # TODO: properly set task_id and table dynamically based on whether symbol, timeframe and pipeline_id exists
+        # pipeline_id always exists so an ignore parameter may needed for this to work
         self.task_name = str(type(self).__name__).lower()
-        self.task_id = f'{self.symbol}_{self.task_name}_{self.timeframe}_{os.getenv("PIPELINE_ID")}'.lower()
-        self.table = f'{self.symbol}_{config.table[self.task_name]}_{self.timeframe}_{os.getenv("PIPELINE_ID")}'.lower()
+        if 'timeframe' in self.__dict__.keys():
+            # set metadata for normal tasks
+            self.task_id = f'{self.symbol}_{self.task_name}_{self.timeframe}_{os.getenv("PIPELINE_ID")}'.lower()
+            self.table = f'{self.symbol}_{config.table[self.task_name]}_{self.timeframe}_{os.getenv("PIPELINE_ID")}'.lower()
+        else:
+            # set metadata for tasks that are above the timeframe level
+            self.task_id = f'{self.symbol}_{self.task_name}'
+            self.table = f'{self.symbol}_{config.table[self.task_name]}'.lower()
         self.schema = config.schema[self.task_name]
         self.fields = [s.split(' ')[0] for s in self.schema]
         self.env_type = os.getenv('ENV_TYPE')
         self.start = int(os.getenv('PIPELINE_START'))
         self.end = int(os.getenv('PIPELINE_END')) - config.base_ms
+        tasks_obj[self.task_id] = self
 
         # writing
         self.write_batch = []
@@ -32,7 +39,8 @@ class Task(BaseTask):
             if table_exists:
                 datarange = requests.get(url=f'{config.api_base_url}/datarange?table={self.table}').json()['data']
                 if self.start >= int(datarange[0]) and self.end <= int(datarange[-1] + config.base_ms):
-                    pass  # something did happen here before but then it got changed. too lazy to refactor the if statements.
+                    self.data_source = self._db_source()
+                    self.data_exists = True
                 else:
                     # if the data doesn't exist yet then write to db
                     self.data_writer = self._db_write
@@ -41,40 +49,57 @@ class Task(BaseTask):
                 # also write if table doesn't exist
                 self.data_writer = self._db_write
                 self._create_table()
-
-        super().__init__()
     
     def process(self, element):
         return element
+    
+    def generate(self):
+        yield None
 
     def activate(self):
-        input_elements = {}
+        if self.iteration_status != task_config.QUEUED:
+            return
+        self.iteration_status = task_config.IN_PROGRESS
 
-        # Combine input elements into one dict
-        for input_task in self.input_tasks:
-            if input_task.output_element is None \
-                or (self.output_element is not None and self.output_element['timestamp'] + config.base_ms != input_task.output_element['timestamp']):
-                # raise Exception(f'this should never happen. Expected timestamp = {self.output_element["timestamp"] + config.base_ms}, recieved timestamp = {input_task.output_element["timestamp"]}')
-                return
-            input_elements = input_elements | input_task.output_element
+        if self.task_type == task_config.TASK:
+            input_elements = {}
+            # Combine input elements into one dict
+            for input_task in self.input_tasks:
+                if input_task.output_element is None \
+                    or (self.output_element is not None and self.output_element['timestamp'] + config.base_ms != input_task.output_element['timestamp']):
+                    # raise Exception(f'this should never happen. Expected timestamp = {self.output_element["timestamp"] + config.base_ms}, recieved timestamp = {input_task.output_element["timestamp"]}')
+                    return
+                input_elements = input_elements | input_task.output_element
+            self.output_element = self.process(input_elements)
+            
+        elif self.task_type == task_config.SOURCE:
+            self.output_element = self.data_source.__next__()
 
-        self.output_element = self.process(input_elements)
-        
         # write output
         self.data_writer()
 
         # log task state
         if self.logging:
             self._write_log()
+        
+        self.iteration_status = task_config.COMPLETE
 
-        for output_op in self.output_tasks:
-            output_op.activate()
+        for output_task in self.output_tasks:
+            output_task.activate()
     
     def kill_all(self):
-        self.output_element = None
-        print(f'shutting down {self.task_id}', flush=True)
-        self.data_writer(flush=True)
-        if self.logging:
-            self._close_log()
-        for output_op in self.output_tasks:
-            output_op.kill_all()
+        if self.status == task_config.ACTIVATED:
+            self.output_element = None
+            print(f'shutting down {self.task_id}', flush=True)
+            self.data_writer(flush=True)
+            self.status = task_config.DEACTIVATED
+            self.iteration_status = task_config.IDLE
+            if self.logging:
+                self._close_log()
+            for output_task in self.output_tasks:
+                output_task.kill_all()
+
+    def convert_data_source_to_generator(self):
+        if not self.data_exists:
+            self.data_source = self.generate()
+        

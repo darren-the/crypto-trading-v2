@@ -2,12 +2,12 @@ import requests
 from pipeline.utils.utils import date_str_to_timestamp, timeframe_to_ms
 from pipeline.configs import config
 import time
-from pipeline.base_classes.source import Source
+from pipeline.base_classes.task import Task
 from copy import deepcopy
 import os
 
 
-class FetchCandles(Source):
+class FetchCandles(Task):
     def __init__(self, *args, **kwargs):
         self.__dict__.update(kwargs)
         self.url = config.bitfinex['candle_url'][self.symbol]
@@ -15,6 +15,7 @@ class FetchCandles(Source):
         self.interval = config.base_ms
         self.last_candle = None
         super().__init__()
+        self.convert_data_source_to_generator()
 
     def generate(self):
         # Fetch candles in batches
