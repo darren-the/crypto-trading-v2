@@ -12,9 +12,11 @@ class HighLow(Task):
         self.high_timestamp = -1
         self.high_top = -1
         self.high_bottom = -1
+        self.high_colour = 'none'
         self.low_timestamp = -1
         self.low_top = -1
         self.low_bottom = -1
+        self.low_colour = 'none'
         self.alpha = 0
         self.high_low = {}
         super().__init__()
@@ -27,10 +29,12 @@ class HighLow(Task):
             'high_timestamp': self.high_timestamp,
             'high_top': self.high_top,
             'high_bottom': self.high_bottom,
+            'high_colour': self.high_colour,
             'is_low': False,
             'low_timestamp': self.low_timestamp,
             'low_top': self.low_top,
             'low_bottom': self.low_bottom,
+            'low_colour': self.low_colour,
             'is_complete': element['is_complete'],
         }
         
@@ -85,12 +89,14 @@ class HighLow(Task):
         return 1 if base_alpha >= 0 else -1
 
     def _update_high(self, element, update_low=True):
+        if self.high_low['high_timestamp'] == -1:
+            self._init_high(element)
         # Update high
-        bottom = max(element['open'], element['close'])
-        if element['high'] > self.high_low['high_top'] and bottom > self.high_low['high_bottom']:
-            self.high_low['high_timestamp'] = element['candle_timestamp']
+        bottom = max(element['open'], element['close'])            
         if element['high'] > self.high_low['high_top']:
+            self.high_low['high_timestamp'] = element['candle_timestamp']
             self.high_low['high_top'] = element['high']
+            self._update_high_colour(element)
         if bottom > self.high_low['high_bottom']:
             self.high_low['high_bottom'] = bottom
 
@@ -98,19 +104,21 @@ class HighLow(Task):
         if update_low:
             if self.high_low['low_timestamp'] != -1:
                 if self.high_low['high_timestamp'] > self.high_low['low_timestamp']:
-                    self._reset_low()
+                    self._reset_low(hard_reset=True)
                 else:
                     self._update_low(element, False)
             if self.high_low['low_timestamp'] == -1 and element['open'] > element['close']:
                 self._init_low(element)
     
     def _update_low(self, element, update_high=True):
+        if self.high_low['low_timestamp'] == -1:
+            self._init_low(element)
         # Update low
         top = min(element['open'], element['close'])
-        if element['low'] < self.high_low['low_bottom'] and top < self.high_low['low_top']:
-            self.high_low['low_timestamp'] = element['candle_timestamp']
         if element['low'] < self.high_low['low_bottom']:
+            self.high_low['low_timestamp'] = element['candle_timestamp']
             self.high_low['low_bottom'] = element['low']
+            self._update_low_colour(element)
         if top < self.high_low['low_top']:
             self.high_low['low_top'] = top
         
@@ -118,7 +126,7 @@ class HighLow(Task):
         if update_high:
             if self.high_low['high_timestamp'] != -1:
                 if self.high_low['low_timestamp'] > self.high_low['high_timestamp']:
-                    self._reset_high()
+                    self._reset_high(hard_reset=True)
                 else:
                     self._update_high(element, False)
             if self.high_low['high_timestamp'] == -1 and element['open'] < element['close']:
@@ -128,22 +136,50 @@ class HighLow(Task):
         self.high_low['high_timestamp'] = element['candle_timestamp']
         self.high_low['high_top'] = element['high']
         self.high_low['high_bottom'] = max(element['open'], element['close'])
+        self._update_high_colour(element)
     
     def _init_low(self, element):
         self.high_low['low_timestamp'] = element['candle_timestamp']
         self.high_low['low_top'] = min(element['open'], element['close'])
         self.high_low['low_bottom'] = element['low']
+        self._update_low_colour(element)
     
-    def _reset_high(self):
+    def _reset_high(self, hard_reset=False):
         self.high_timestamp = self.high_top = self.high_bottom = -1
+        self.high_colour = 'none'
+        if hard_reset:
+            self.high_low['high_timestamp'] = self.high_low['high_top'] = self.high_low['high_bottom'] = -1
+            self.high_low['high_colour'] = 'none'
     
-    def _reset_low(self):
+    def _reset_low(self, hard_reset=False):
         self.low_timestamp = self.low_top = self.low_bottom = -1
+        self.low_colour = 'none'
+        if hard_reset:
+            self.high_low['low_timestamp'] = self.high_low['low_top'] = self.high_low['low_bottom'] = -1
+            self.high_low['low_colour'] = 'none'
     
     def _save_high_low(self):
         self.high_timestamp = self.high_low['high_timestamp']
         self.high_top = self.high_low['high_top']
         self.high_bottom = self.high_low['high_bottom']
+        self.high_colour = self.high_low['high_colour']
         self.low_timestamp = self.high_low['low_timestamp']
         self.low_top = self.high_low['low_top']
         self.low_bottom = self.high_low['low_bottom']
+        self.low_colour = self.high_low['low_colour']
+    
+    def _update_high_colour(self, element):
+        if element['close'] > element['open']:
+            self.high_low['high_colour'] = 'green'
+        elif element['open'] > element['close']:
+            self.high_low['high_colour'] = 'red'
+        else:
+            element['high_colour'] = 'none'
+    
+    def _update_low_colour(self, element):
+        if element['close'] > element['open']:
+            self.high_low['low_colour'] = 'green'
+        elif element['open'] > element['close']:
+            self.high_low['low_colour'] = 'red'
+        else:
+            element['low_colour'] = 'none'

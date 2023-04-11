@@ -81,8 +81,7 @@ def run(pipeline_id):
 
             # set dependencies
             fetch_candles[s] >> aggregate_candles[s][t] >> [high_low[s][t], rsi[s][t]]
-            high_low[s][t] >> [resistance[s][t], support[s][t]]
-            [aggregate_candles[s][t], high_low[s][t]] >> high_low_history[s][t]
+            high_low[s][t] >> [resistance[s][t], support[s][t], high_low_history[s][t]]
             [aggregate_candles[s][t], high_low_history[s][t]] >> retracement[s][t]
 
     
