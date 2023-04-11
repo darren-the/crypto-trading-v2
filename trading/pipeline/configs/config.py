@@ -49,10 +49,12 @@ schema = {
         'high_timestamp NUMERIC NOT NULL',
         'high_top NUMERIC NOT NULL',
         'high_bottom NUMERIC NOT NULL',
+        'high_colour TEXT NOT NULL',
         'is_low BOOL NOT NULL',
         'low_timestamp NUMERIC NOT NULL',
         'low_top NUMERIC NOT NULL',
         'low_bottom NUMERIC NOT NULL',
+        'low_colour TEXT NOT NULL',
         'is_complete BOOL NOT NULL',
     ],
     'resistance': [

@@ -29,16 +29,36 @@ class HighLowHistory(Task):
         if high is not None and low is not None:
             if high['timestamp'] < low['timestamp'] or (
                 high['timestamp'] == low['timestamp'] and \
-                element['open'] > element['close']
+                element['high_colour'] == element['low_colour'] == 'red'
             ):
                 self.history.append(high)
                 self.history.append(low)
-            if low['timestamp'] < high['timestamp'] or (
+            elif low['timestamp'] < high['timestamp'] or (
                 high['timestamp'] == low['timestamp'] and \
-                element['close'] > element['open']
+                element['high_colour'] == element['low_colour'] == 'green'
             ):
                 self.history.append(low)
                 self.history.append(high)
+            elif element['high_colour'] == element['low_colour'] == 'none' \
+                and len(self.history) > 0:
+                if self.history[-1]['type'] == 'high':
+                    self.history.append(low)
+                    self.history.append(high)
+                else:
+                    self.history.append(high)
+                    self.history.append(low)
+            else:
+                # This is a last resort where the high and low occur on the same candle
+                # AND that candle has no colour AND there is no prior info about history order.
+                # TODO: this is technically a bug since in this case, there is currently no way to
+                # guarantee the correct order. However, this scenario is extremely unlikely
+                # and if it does occur, it technically should only happen in the 1 minute timeframe.
+                # One way to deal with this is to set the high and low like so, and then later when
+                # a new high/low arrives, check the ordering of the history and fix it if needed.
+                # I just cbf doing that case right now.
+                self.history.append(high)
+                self.history.append(low)
+                
         elif high is not None:
             self.history.append(high)
         elif low is not None:
