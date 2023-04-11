@@ -32,6 +32,7 @@ table = {
     'trader': 'trader',
     'aggregatebuysell': 'aggregate_buy_sell',
     'structure': 'structure',
+    'rsiprojection': 'rsi_projection',
 }
 schema = {
     'fetchcandles': [
@@ -95,6 +96,10 @@ schema = {
         'timestamp NUMERIC PRIMARY KEY',
         'candle_timestamp NUMERIC NOT NULL',
         'rsi NUMERIC NOT NULL',
+        'last_price NUMERIC NOT NULL',
+        'previous_avg_gain NUMERIC NOT NULL',
+        'previous_avg_loss NUMERIC NOT NULL',
+        'current_rsi_length NUMERIC NOT NULL',
         'is_complete BOOL NOT NULL',
     ],
     'retracement': [
@@ -192,6 +197,13 @@ schema = {
         'equil_top NUMERIC NOT NULL',
         'struct_bottom NUMERIC NOT NULL',
         'equil_bottom NUMERIC NOT NULL',
+        'is_complete BOOL NOT NULL',
+    ],
+    'rsiprojection': [
+        'timestamp NUMERIC PRIMARY KEY',
+        'candle_timestamp NUMERIC NOT NULL',
+        'candle_timestamp_projection NUMERIC NOT NULL',
+        'price_projection NUMERIC NOT NULL',
         'is_complete BOOL NOT NULL',
     ],
 }

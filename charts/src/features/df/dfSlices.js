@@ -19,6 +19,7 @@ const sliceNames = [
   // 'aggbuysell',
   // 'risk',
   'structure',
+  'rsiproject',
 ]
 // ====================================================
 
@@ -31,6 +32,7 @@ const overrideReducers = {
   'retracement': singleReducers,
   'retracelong': singleReducers,
   'structure': singleReducers,
+  'rsiproject': singleReducers,
 }
 // ====================================================
 
