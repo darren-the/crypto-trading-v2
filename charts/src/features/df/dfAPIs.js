@@ -13,6 +13,7 @@ import { fetchTrader } from './trader/traderAPI'
 import { fetchAggbuysell } from './aggBuySell/aggBuySellAPI'
 import { fetchRisk } from './risk/riskAPI'
 import { fetchStructure } from './structure/structureAPI'
+import { fetchRsiproject } from './rsiProject/rsiProjectAPI'
 
 // ================ ADD FETCH DATA HERE ================
 const fetchDataFeatures = {
@@ -30,6 +31,7 @@ const fetchDataFeatures = {
   fetchAggbuysell,
   fetchRisk,
   fetchStructure,
+  fetchRsiproject,
 }
 // =====================================================
 

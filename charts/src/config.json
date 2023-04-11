@@ -47,6 +47,9 @@
   "structure": {
     "path": "/structure"
   },
+  "rsiproject": {
+    "path": "/rsi_projection"
+  },
   "timeframes": [
     "1m",
     "5m",
