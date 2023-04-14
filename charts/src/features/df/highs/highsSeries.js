@@ -23,7 +23,6 @@ export const updateHighsSeries = (name, series, data) => {
       const index = (highTime - candlesDisplayedData[0].time * 1000) / config.timeframeToMs[timeframe]
       return candlesDisplayedData[index]
     })
-    console.log(candleHighs.filter(high => high !== undefined))
     series[name].setData(candleHighs.filter(high => high !== undefined))
   }
 

@@ -54,6 +54,8 @@
     "PREPEND": 3
   },
   "dispatchOrder": [
-    "candles"
+    "candles",
+    "highs",
+    "lows"
   ]
 }
