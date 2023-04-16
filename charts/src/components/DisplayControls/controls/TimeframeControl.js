@@ -17,13 +17,18 @@ const TimeframeControl = () => {
     })
     setCurrentTimeframe(timeframe)
   }
-  const timeframeButtons = config.timeframes.map(timeframe => 
-    <button key={timeframe} onClick={() => changeTimeframe(timeframe)}>{timeframe}</button>  
+  const timeframeOptions = config.timeframes.map(timeframe =>
+    <option key={timeframe} value={timeframe}>{timeframe}</option>
   )
+
   return (
     <div>
-      {timeframeButtons}
-      <span>Current timeframe: {currentTimeframe}</span>
+      <span>
+        Current timeframe:
+        <select onChange={(e) => changeTimeframe(e.target.value)} defaultValue={currentTimeframe}>
+          {timeframeOptions}
+        </select>
+      </span>
     </div>
   )
 }

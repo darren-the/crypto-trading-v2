@@ -11,7 +11,7 @@ export const updateDisplayedDataSingle = (state) => {
 
 export const incrementDisplaySingle = (state) => {
   const storedData = current(state.storedData)
-  const newDisplayIndex = state.displayIndex + 1
+  const newDisplayIndex = state.displayIndex + state.incrementIndex
   if (newDisplayIndex >= storedData.length) return
   state.displayedData = [storedData[newDisplayIndex]]
   state.displayIndex = newDisplayIndex
@@ -20,7 +20,7 @@ export const incrementDisplaySingle = (state) => {
 
 export const decrementDisplaySingle = (state) => {
   const storedData = current(state.storedData)
-  const newDisplayIndex = state.displayIndex -1
+  const newDisplayIndex = state.displayIndex - state.incrementIndex
   if (newDisplayIndex < 0) return
   state.displayedData = [storedData[newDisplayIndex]]
   state.displayIndex = newDisplayIndex
