@@ -37,6 +37,8 @@ export const dfSlices = sliceNames.map(sliceName => {
     status: 'idle',
     prependable: true,
     appendable: true,
+    incrementMs: config.baseMs,
+    incrementIndex: 1,
   }
   const slice = createSlice({
     name: sliceName,
@@ -94,12 +96,12 @@ export const dfSlices = sliceNames.map(sliceName => {
         }
       },
       incrementDisplay: (state) => {
-        const displayedData = current(state.displayedData)
         const storedData = current(state.storedData)
-        const newDisplayIndex = state.displayIndex + 1
-
+        const newDisplayIndex = state.displayIndex + state.incrementIndex
         if (newDisplayIndex >= storedData.length) return
-        
+        const newDisplaySlice = storedData.slice(state.displayIndex + 1, newDisplayIndex)
+        const newDisplaySliceFiltered = newDisplaySlice.filter(data => data.is_complete)
+        const displayedData = current(state.displayedData).concat(newDisplaySliceFiltered)
         if (displayedData[displayedData.length - 1].time < storedData[newDisplayIndex].time) {
           state.displayedData = displayedData.concat(storedData[newDisplayIndex])
         } else if (displayedData[displayedData.length - 1].time === storedData[newDisplayIndex].time) {
@@ -111,17 +113,36 @@ export const dfSlices = sliceNames.map(sliceName => {
       decrementDisplay: (state) => {
         const displayedData = current(state.displayedData)
         const storedData = current(state.storedData)
-        const newDisplayIndex = state.displayIndex -1
+        const newDisplayIndex = state.displayIndex - state.incrementIndex
         
         if (newDisplayIndex < 0) return
 
         if (storedData[newDisplayIndex].time < displayedData[displayedData.length - 1].time) {
-          state.displayedData = displayedData.slice(0, displayedData.length - 1)
+          const decrementIndex = Math.max(state.incrementMs / config.timeframeToMs[state.timeframe] - 1, 0)
+          state.displayedData = displayedData.slice(0, displayedData.length - 1 - decrementIndex)
         } else if (storedData[newDisplayIndex].time === displayedData[displayedData.length - 1].time) {
           state.displayedData = displayedData.slice(0, displayedData.length - 1).concat(storedData[newDisplayIndex])
         }
         state.displayIndex = newDisplayIndex
         state.displayTime = storedData[newDisplayIndex].baseTime + config.baseMs
+      },
+      changeIncrement: (state, action) => {
+        const newIncrementMs = action.payload
+        if (
+          newIncrementMs === state.incrementMs
+          || (
+            newIncrementMs > config.timeframeToMs[state.timeframe]
+            && newIncrementMs % config.timeframeToMs[state.timeframe] !== 0
+          )
+          || (
+            newIncrementMs < config.timeframeToMs[state.timeframe]
+            && config.timeframeToMs[state.timeframe] % newIncrementMs !== 0
+          )
+        ) return
+        state.incrementMs = newIncrementMs
+        state.incrementIndex = newIncrementMs / config.baseMs
+        state.displayTime = state.displayTime - (state.displayTime % state.incrementMs)
+        state.displayedData = []
       },
       ...overrideReducers[sliceName]
     },

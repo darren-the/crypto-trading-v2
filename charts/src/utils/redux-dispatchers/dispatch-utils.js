@@ -61,3 +61,7 @@ export const updateDisplay = ({ name, series, setDfComponent }) => {
   updateDfSeries(name, series, displayedData)
   updateDfComponent(name, setDfComponent, displayedData)
 }
+
+export const dispatchChangeIncrement = ({ name, increment }) => {
+  store.dispatch({ type: `${name}/changeIncrement`, payload: increment })
+}
