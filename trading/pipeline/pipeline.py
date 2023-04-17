@@ -13,6 +13,7 @@ from pipeline.steps.transformers.support import Support
 from pipeline.steps.transformers.rsi import RSI
 from pipeline.steps.transformers.retracement import Retracement
 from pipeline.steps.transformers.high_low_history import HighLowHistory
+from pipeline.steps.transformers.avg_rsi import AvgRSI
 
 import os
 
@@ -36,6 +37,7 @@ def run(pipeline_id):
         support = {s: {}}
         retracement = {s: {}}
         high_low_history = {s: {}}
+        avg_rsi = {s: {}}
 
         for t in config.timeframes:
             # Defining tasks
@@ -79,14 +81,17 @@ def run(pipeline_id):
                 history_length=10,
             )
 
+            avg_rsi[s][t] = AvgRSI(
+                symbol=s,
+                timeframe=t,
+                avg_rsi_length=5,
+            )
+
             # set dependencies
             fetch_candles[s] >> aggregate_candles[s][t] >> [high_low[s][t], rsi[s][t]]
             high_low[s][t] >> [resistance[s][t], support[s][t], high_low_history[s][t]]
             [aggregate_candles[s][t], high_low_history[s][t]] >> retracement[s][t]
-
-    
-    # for s in config.symbols:
-    #     fetch_candles[s].activate()
+            rsi[s][t] >> avg_rsi[s][t]
 
     source = Source()
     source.start_source()

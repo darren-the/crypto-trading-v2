@@ -24,6 +24,7 @@ table = {
     'rsi': 'rsi',
     'retracement': 'retracement',
     'highlowhistory': 'high_low_history',
+    'avgrsi': 'avg_rsi',
 }
 schema = {
     'fetchcandles': [
@@ -104,7 +105,13 @@ schema = {
         'high_low_price_history TEXT NOT NULL',
         'high_low_confirmed_history TEXT NOT NULL',
         'is_complete BOOL NOT NULL',
-    ]
+    ],
+    'avgrsi': [
+        'timestamp NUMERIC PRIMARY KEY',
+        'candle_timestamp NUMERIC NOT NULL',
+        'avg_rsi NUMERIC NOT NULL',
+        'is_complete BOOL NOT NULL',
+    ],
 }
 dev_hist_start = '2022-01-01'
 dev_hist_end = '2022-03-01'
