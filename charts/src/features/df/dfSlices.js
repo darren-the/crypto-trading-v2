@@ -12,6 +12,7 @@ const sliceNames = [
   'resistance',
   'support',
   'retracement',
+  'avgrsi'
 ]
 // ====================================================
 

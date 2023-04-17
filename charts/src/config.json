@@ -26,6 +26,9 @@
   "retracement": {
     "path": "/retracement"
   },
+  "avgrsi": {
+    "path": "/avg_rsi"
+  },
   "timeframes": [
     "1m",
     "5m",
