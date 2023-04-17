@@ -85,6 +85,9 @@ def run(pipeline_id):
                 symbol=s,
                 timeframe=t,
                 avg_rsi_length=5,
+                scale_upper_bound=70,
+                scale_lower_bound=30,
+                scale_factor=0.75,
             )
 
             # set dependencies
