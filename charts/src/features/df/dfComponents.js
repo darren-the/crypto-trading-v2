@@ -1,9 +1,10 @@
 import { updateRetracementComponent } from './retracement/retracementComponent'
+import { updateRetracelongComponent } from './retraceLong/retraceLongComponent'
 
 // ============= ADD UPDATE COMPONENT HERE ==============
 const componentUpdaters = {
   updateRetracementComponent,
-  
+  updateRetracelongComponent,
 }
 // ======================================================
 
