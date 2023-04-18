@@ -29,8 +29,11 @@
   "avgrsi": {
     "path": "/avg_rsi"
   },
-  "retracelong": {
+  "aggretracelong": {
     "path": "/aggregate_retracement_long"
+  },
+  "retracelong": {
+    "path": "/retracement_long"
   },
   "timeframes": [
     "1m",

@@ -749,9 +749,9 @@ def chart_retracement_long():
     QUERY = f'''
         SELECT
             timestamp
-            , candle_timestamp
-            , agg_retracement_long
-            , is_complete
+            , retracement_timeframe
+            , high_retracement
+            , oversold_timeframe
         FROM {args.get('symbol')}_retracement_long_{args.get('pipeline_id')}
         WHERE
             timestamp >= {args.get('start')}

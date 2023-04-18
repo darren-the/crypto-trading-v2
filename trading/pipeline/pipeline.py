@@ -38,7 +38,10 @@ def run(pipeline_id):
             symbol=s,
             ignore_pipeline_id=True
         )
-        retracement_long[s] = RetracementLong(symbol=s)
+        retracement_long[s] = RetracementLong(
+            symbol=s,
+            ignore_timeframes=['1m'],
+        )
 
         # Base tasks objects
         aggregate_candles = {s: {}}

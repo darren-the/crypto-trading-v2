@@ -2,5 +2,7 @@ export const updateRetracementComponent = (name, setDfComponent, data) => {
   if (data.length === 0) return
   const displayedText = `High retracement = ${Math.round(data[0].highRetracement * 100)}%, ` +
     `Low retracement = ${Math.round(data[0].lowRetracement * 100)}%`
-  if (setDfComponent) setDfComponent(name, <span>{displayedText}</span>)
+  if (setDfComponent) {
+    setDfComponent(name, <span>{displayedText}</span>)
+  }
 }

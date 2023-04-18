@@ -2,7 +2,7 @@ import axios from 'axios'
 import { getQueryParamsUrl } from '../../../utils/utils'
 import config from '../../../config.json'
 
-export const fetchRetracelong = async ({
+export const fetchAggretracelong = async ({
   symbol,
   timeframe,
   pipelineId,
@@ -10,13 +10,13 @@ export const fetchRetracelong = async ({
   end,
 }) => {
   const queryParams = getQueryParamsUrl(symbol, timeframe, pipelineId, start, end)
-  return await axios.get(`${config.api.base_url}${config.retracelong.path}${queryParams}`).then(response => {
+  return await axios.get(`${config.api.base_url}${config.aggretracelong.path}${queryParams}`).then(response => {
     return response.data.data.map(element => {
       return {
         baseTime: element[0],
-        retracementTimeframe: element[1],
-        highRetracement: element[2],
-        oversoldTimeframe: element[3],
+        time: element[1] / 1000,
+        long: element[2],
+        is_complete: element[3],
       }
     })
   })

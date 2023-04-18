@@ -1,13 +1,13 @@
-export const createRetracelongSeries = (chart) => {}
+export const createAggretracelongSeries = (chart) => {}
 
-export const updateRetracelongSeries = (name, series, data) => {
+export const updateAggretracelongSeries = (name, series, data) => {
   if (series.candles === undefined) return
   const markers = data.filter(item => item.long).map(retraceLong => {
     return {
       time: retraceLong.time,
-      position: 'aboveBar',
+      position: 'belowBar',
       color: '#000000',
-      shape: 'arrowDown',
+      shape: 'arrowUp',
       text: 'LONG',
     }
   })

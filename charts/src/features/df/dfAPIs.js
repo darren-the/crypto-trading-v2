@@ -7,6 +7,7 @@ import { fetchResistance } from './resistance/resistanceAPI'
 import { fetchSupport } from './support/supportAPI'
 import { fetchRetracement } from './retracement/retracementAPI'
 import { fetchAvgrsi } from './avgRsi/avgRsiAPI'
+import { fetchAggretracelong } from './aggRetraceLong/aggRetraceLongAPI'
 import { fetchRetracelong } from './retraceLong/retraceLongAPI'
 
 // ================ ADD FETCH DATA HERE ================
@@ -19,6 +20,7 @@ const fetchDataFeatures = {
   fetchSupport,
   fetchRetracement,
   fetchAvgrsi,
+  fetchAggretracelong,
   fetchRetracelong,
 }
 // =====================================================
