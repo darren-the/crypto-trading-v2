@@ -679,6 +679,50 @@ def chart_avg_rsi():
     conn.close()
     return {'data': query_result}
 
+@app.route('/charts/aggregate_retracement_long', methods=['GET'])
+def chart_aggregate_retracement_long():
+    # Require args
+    args = request.args
+    required_args = ['symbol', 'timeframe', 'pipeline_id', 'start', 'end']
+    missing_args = []
+    for required_arg in required_args:
+        if args.get(required_arg) is None:
+            missing_args.append(required_arg)
+    if len(missing_args) > 0:
+        return {'error': 'Missing parameters: ' + str(missing_args)}, 400
+
+    # Connect to the PostgreSQL database
+    conn = psycopg2.connect(
+        host="db",
+        database="mydatabase",
+        user="myuser",
+        password="mypassword"
+    )
+    cur = conn.cursor()
+
+    # Fetch data from table
+    QUERY = f'''
+        SELECT
+            timestamp
+            , candle_timestamp
+            , agg_retracement_long
+            , is_complete
+        FROM {args.get('symbol')}_aggregate_retracement_long_{args.get('timeframe')}_{args.get('pipeline_id')}
+        WHERE
+            timestamp >= {args.get('start')}
+            AND timestamp < {args.get('end')}
+        ORDER BY timestamp
+    '''
+
+    cur.execute(QUERY)
+    query_result = cur.fetchall()
+
+    # Commit the transaction
+    conn.commit()
+
+    cur.close()
+    conn.close()
+    return {'data': query_result}
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=4500, debug=True)

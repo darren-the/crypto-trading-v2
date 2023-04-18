@@ -13,7 +13,9 @@ class Task(BaseTask):
         # TODO: properly set task_id and table dynamically based on whether symbol, timeframe and pipeline_id exists
         # pipeline_id always exists so an ignore parameter may needed for this to work
         self.task_name = str(type(self).__name__).lower()
-        if 'timeframe' in self.__dict__.keys():
+        if 'timeframe' not in self.__dict__.keys():
+            self.timeframe = 'no_timeframe'
+        if self.timeframe != 'no_timeframe':
             # set metadata for normal tasks
             self.task_id = f'{self.symbol}_{self.task_name}_{self.timeframe}_{os.getenv("PIPELINE_ID")}'.lower()
             self.table = f'{self.symbol}_{config.table[self.task_name]}_{self.timeframe}_{os.getenv("PIPELINE_ID")}'.lower()
@@ -59,20 +61,16 @@ class Task(BaseTask):
     def activate(self):
         if self.iteration_status != task_config.QUEUED:
             return
-        self.iteration_status = task_config.IN_PROGRESS
 
         if self.task_type == task_config.TASK:
-            input_elements = {}
-            # Combine input elements into one dict
-            for input_task in self.input_tasks:
-                if input_task.output_element is None \
-                    or (self.output_element is not None and self.output_element['timestamp'] + config.base_ms != input_task.output_element['timestamp']):
-                    # raise Exception(f'this should never happen. Expected timestamp = {self.output_element["timestamp"] + config.base_ms}, recieved timestamp = {input_task.output_element["timestamp"]}')
-                    return
-                input_elements = input_elements | input_task.output_element
+            input_elements = self._combine_inputs()
+            if input_elements is None:
+                return
+            self.iteration_status = task_config.IN_PROGRESS
             self.output_element = self.process(input_elements)
             
         elif self.task_type == task_config.SOURCE:
+            self.iteration_status = task_config.IN_PROGRESS
             self.output_element = self.data_source.__next__()
 
         # write output
@@ -102,4 +100,14 @@ class Task(BaseTask):
     def convert_data_source_to_generator(self):
         if not self.data_exists:
             self.data_source = self.generate()
-        
+    
+    def _combine_inputs(self):
+        # Combine input elements into one dict
+        input_elements = {}
+        for input_task in self.input_tasks:
+            if input_task.output_element is None \
+                or (self.output_element is not None and self.output_element['timestamp'] + config.base_ms != input_task.output_element['timestamp']):
+                # raise Exception(f'this should never happen. Expected timestamp = {self.output_element["timestamp"] + config.base_ms}, recieved timestamp = {input_task.output_element["timestamp"]}')
+                return None
+            input_elements = input_elements | input_task.output_element
+        return input_elements

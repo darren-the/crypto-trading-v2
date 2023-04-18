@@ -12,7 +12,8 @@ const sliceNames = [
   'resistance',
   'support',
   'retracement',
-  'avgrsi'
+  'avgrsi',
+  'retracelong',
 ]
 // ====================================================
 
