@@ -34,7 +34,10 @@ def run(pipeline_id):
     fetch_candles = {}
     retracement_long = {}
     for s in config.symbols:
-        fetch_candles[s] = FetchCandles(symbol=s)
+        fetch_candles[s] = FetchCandles(
+            symbol=s,
+            ignore_pipeline_id=True
+        )
         retracement_long[s] = RetracementLong(symbol=s)
 
         # Base tasks objects

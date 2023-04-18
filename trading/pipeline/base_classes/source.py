@@ -34,6 +34,7 @@ class Source:
 
     def _set_task_status(self):
         for task_id, task in tasks_obj.items():
+            print(task_id, flush=True)
             if not task.data_exists:
                 task.status = ACTIVATED
                 self.active_tasks[task_id] = task

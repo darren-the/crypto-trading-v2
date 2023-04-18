@@ -13,16 +13,16 @@ class Task(BaseTask):
         # TODO: properly set task_id and table dynamically based on whether symbol, timeframe and pipeline_id exists
         # pipeline_id always exists so an ignore parameter may needed for this to work
         self.task_name = str(type(self).__name__).lower()
-        if 'timeframe' not in self.__dict__.keys():
-            self.timeframe = 'no_timeframe'
-        if self.timeframe != 'no_timeframe':
-            # set metadata for normal tasks
-            self.task_id = f'{self.symbol}_{self.task_name}_{self.timeframe}_{os.getenv("PIPELINE_ID")}'.lower()
-            self.table = f'{self.symbol}_{config.table[self.task_name]}_{self.timeframe}_{os.getenv("PIPELINE_ID")}'.lower()
+        self.task_id = f'{self.symbol}_{self.task_name}'.lower()
+        self.table = f'{self.symbol}_{config.table[self.task_name]}'.lower()
+        if 'timeframe' in self.__dict__.keys():
+            self.task_id += f'_{self.timeframe}'.lower()
+            self.table += f'_{self.timeframe}'.lower()
         else:
-            # set metadata for tasks that are above the timeframe level
-            self.task_id = f'{self.symbol}_{self.task_name}'
-            self.table = f'{self.symbol}_{config.table[self.task_name]}'.lower()
+            self.timeframe = 'no_timeframe'
+        if 'ignore_pipeline_id' not in self.__dict__.keys() or not self.ignore_pipeline_id:
+            self.task_id += f'_{os.getenv("PIPELINE_ID")}'.lower()
+            self.table += f'_{os.getenv("PIPELINE_ID")}'.lower()
         self.schema = config.schema[self.task_name]
         self.fields = [s.split(' ')[0] for s in self.schema]
         self.env_type = os.getenv('ENV_TYPE')
