@@ -12,7 +12,9 @@ const sliceNames = [
   'resistance',
   'support',
   'retracement',
-  'avgrsi'
+  'avgrsi',
+  'aggretracelong',
+  'retracelong',
 ]
 // ====================================================
 
@@ -23,6 +25,7 @@ const overrideReducers = {
   'resistance': singleReducers,
   'support': singleReducers,
   'retracement': singleReducers,
+  'retracelong': singleReducers,
 }
 // ====================================================
 

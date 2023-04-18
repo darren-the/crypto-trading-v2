@@ -25,6 +25,8 @@ table = {
     'retracement': 'retracement',
     'highlowhistory': 'high_low_history',
     'avgrsi': 'avg_rsi',
+    'retracementlong': 'retracement_long',
+    'aggregateretracementlong': 'aggregate_retracement_long',
 }
 schema = {
     'fetchcandles': [
@@ -110,6 +112,20 @@ schema = {
         'timestamp NUMERIC PRIMARY KEY',
         'candle_timestamp NUMERIC NOT NULL',
         'avg_rsi NUMERIC NOT NULL',
+        'is_complete BOOL NOT NULL',
+    ],
+    'retracementlong': [
+        'timestamp NUMERIC PRIMARY KEY',
+        'retracement_timeframe TEXT NOT NULL',
+        'high_retracement NUMERIC NOT NULL',
+        'oversold_timeframe TEXT NOT NULL',
+        'avg_rsi NUMERIC NOT NULL',
+        'retracement_long BOOL NOT NULL',
+    ],
+    'aggregateretracementlong': [
+        'timestamp NUMERIC PRIMARY KEY',
+        'candle_timestamp NUMERIC NOT NULL',
+        'agg_retracement_long BOOL NOT NULL',
         'is_complete BOOL NOT NULL',
     ],
 }

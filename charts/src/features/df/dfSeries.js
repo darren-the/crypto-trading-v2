@@ -5,6 +5,7 @@ import { createLowsSeries, updateLowsSeries } from './lows/lowsSeries'
 import { createResistanceSeries, updateResistanceSeries } from './resistance/resistanceSeries'
 import { createSupportSeries, updateSupportSeries } from './support/supportSeries'
 import { createAvgrsiSeries, updateAvgrsiSeries } from './avgRsi/avgRsiSeries'
+import { createAggretracelongSeries, updateAggretracelongSeries } from './aggRetraceLong/aggRetraceLongSeries'
 
 // =============== ADD CREATE SERIES HERE ===============
 const seriesCreators = {
@@ -14,6 +15,7 @@ const seriesCreators = {
     createLowsSeries,
     createResistanceSeries,
     createSupportSeries,
+    createAggretracelongSeries,
   ],
   'rsi': [ createRsiSeries, createAvgrsiSeries ],
 }
@@ -28,6 +30,7 @@ const seriesUpdaters = {
   updateResistanceSeries,
   updateSupportSeries,
   updateAvgrsiSeries,
+  updateAggretracelongSeries,
 }
 // ======================================================
 
