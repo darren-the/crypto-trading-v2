@@ -8,3 +8,5 @@ class Psycopg2Formatter:
         row = str(tuple(element[field] for field in self.field_order))
         return row
         
+def psycopg2_format(element, fields):
+    return str(tuple(element[field] for field in fields))
