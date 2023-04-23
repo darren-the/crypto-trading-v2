@@ -14,9 +14,10 @@ from pipeline.steps.transformers.rsi import RSI
 from pipeline.steps.transformers.retracement import Retracement
 from pipeline.steps.transformers.high_low_history import HighLowHistory
 from pipeline.steps.transformers.avg_rsi import AvgRSI
+from pipeline.steps.combiners.support_combiner import SupportCombiner
 
 # Import algorithms
-from pipeline.steps.algorithms.retracement_long import RetracementLong
+from pipeline.steps.combiners.retracement_long import RetracementLong
 
 # Import aggregators
 from pipeline.steps.aggregators.aggregate_retracement_long import AggregateRetracementLong
@@ -33,12 +34,17 @@ def run(pipeline_id):
 
     fetch_candles = {}
     retracement_long = {}
+    support_combiner = {}
     for s in config.symbols:
         fetch_candles[s] = FetchCandles(
             symbol=s,
             ignore_pipeline_id=True
         )
         retracement_long[s] = RetracementLong(
+            symbol=s,
+            ignore_timeframes=['1m'],
+        )
+        support_combiner[s] = SupportCombiner(
             symbol=s,
             ignore_timeframes=['1m'],
         )
@@ -119,6 +125,7 @@ def run(pipeline_id):
         
     # set dependencies at a symbol level
     [*rsi[s].values(), *retracement[s].values(), *avg_rsi[s].values()] >> retracement_long[s]
+    [*high_low[s].values()] >> support_combiner[s]
 
     source = Source()
     source.start_source()

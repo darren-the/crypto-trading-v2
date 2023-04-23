@@ -27,6 +27,7 @@ table = {
     'avgrsi': 'avg_rsi',
     'retracementlong': 'retracement_long',
     'aggregateretracementlong': 'aggregate_retracement_long',
+    'supportcombiner': 'support_combiner',
 }
 schema = {
     'fetchcandles': [
@@ -127,6 +128,23 @@ schema = {
         'candle_timestamp NUMERIC NOT NULL',
         'agg_retracement_long BOOL NOT NULL',
         'is_complete BOOL NOT NULL',
+    ],
+    'supportcombiner': [
+        'timestamp NUMERIC PRIMARY KEY',
+        'candle_timestamp NUMERIC NOT NULL',
+        'is_complete BOOL NOT NULL',
+    ],
+    'support_history_log': [
+        'timestamp NUMERIC NOT NULL',
+        'time TIMESTAMP NOT NULL',
+        'sup_id NUMERIC NOT NULL',
+        'last_update NUMERIC NOT NULL',
+        'max_timeframe TEXT NOT NULL',
+        'start_timestamp NUMERIC NOT NULL',
+        'end_timestamp NUMERIC NOT NULL',
+        'sup_factor NUMERIC NOT NULL',
+        'sup_top NUMERIC NOT NULL',
+        'sup_bottom NUMERIC NOT NULL',
     ],
 }
 dev_hist_start = '2022-01-01'
