@@ -1,5 +1,6 @@
 from pipeline.base_classes.timeframe_combiner import TimeframeCombiner
 from pipeline.configs import config
+import json
 
 class RetracementLong(TimeframeCombiner):
     def __init__(self, *args, **kwargs):
@@ -36,11 +37,13 @@ class RetracementLong(TimeframeCombiner):
                 break
 
         # update long if conditions are met
+        support_range = [-1, -1]
         if retracement_timeframe != 'no_timeframe' \
             and oversold_timeframe != 'no_timeframe' \
             and element[oversold_timeframe]['avg_rsi'] > self.oversold:
             retracement_long = True
-
+            support_range = [element[retracement_timeframe]['high_retracement_low'], element[config.base_timeframe]['close']]
+        
         return {
             'timestamp': element[config.base_timeframe]['timestamp'],
             'retracement_timeframe': retracement_timeframe,
@@ -51,6 +54,7 @@ class RetracementLong(TimeframeCombiner):
             'avg_rsi': -1 \
                 if oversold_timeframe == 'no_timeframe' \
                 else element[oversold_timeframe]['avg_rsi'],
+            'support_range': json.dumps(support_range),
             'retracement_long': retracement_long,
         }
         
