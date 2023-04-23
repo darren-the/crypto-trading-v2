@@ -12,6 +12,9 @@ def date_str_to_timestamp(date_str: str) -> int:
     """
     return int(calendar.timegm(datetime.strptime(date_str, '%Y-%m-%d').timetuple()) * 1000)
 
+def timestamp_to_date(timestamp):
+    return datetime.utcfromtimestamp(timestamp).strftime('%Y-%m-%d %H:%M:%S')
+
 def timeframe_to_ms(timeframe: str) -> int:
     """
     Args:
@@ -29,9 +32,9 @@ def timeframe_to_ms(timeframe: str) -> int:
 
     # Check that the timeframe is in the correct format
     try:
-        length = int(timeframe[: -1])
+        length = int(timeframe[:-1])
     except:
-        raise Exception(f'{length} is not a valid length of time')
+        raise Exception(f'{timeframe[:-1]} is not a valid length of time')
     unit = timeframe[-1:]
 
     try:

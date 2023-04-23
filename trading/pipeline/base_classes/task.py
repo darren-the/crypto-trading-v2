@@ -10,21 +10,6 @@ class Task(BaseTask):
     def __init__(self):
         super().__init__()
 
-        # TODO: properly set task_id and table dynamically based on whether symbol, timeframe and pipeline_id exists
-        # pipeline_id always exists so an ignore parameter may needed for this to work
-        self.task_name = str(type(self).__name__).lower()
-        self.task_id = f'{self.symbol}_{self.task_name}'.lower()
-        self.table = f'{self.symbol}_{config.table[self.task_name]}'.lower()
-        if 'timeframe' in self.__dict__.keys():
-            self.task_id += f'_{self.timeframe}'.lower()
-            self.table += f'_{self.timeframe}'.lower()
-        else:
-            self.timeframe = 'no_timeframe'
-        if 'ignore_pipeline_id' not in self.__dict__.keys() or not self.ignore_pipeline_id:
-            self.task_id += f'_{os.getenv("PIPELINE_ID")}'.lower()
-            self.table += f'_{os.getenv("PIPELINE_ID")}'.lower()
-        self.schema = config.schema[self.task_name]
-        self.fields = [s.split(' ')[0] for s in self.schema]
         self.env_type = os.getenv('ENV_TYPE')
         self.start = int(os.getenv('PIPELINE_START'))
         self.end = int(os.getenv('PIPELINE_END')) - config.base_ms
@@ -32,7 +17,6 @@ class Task(BaseTask):
 
         # writing
         self.write_batch = []
-        self.row_formatter = Psycopg2Formatter(self.task_name)
         def default_writer(*args, **kwargs):
             return
         self.data_writer = default_writer
@@ -46,11 +30,15 @@ class Task(BaseTask):
                 else:
                     # if the data doesn't exist yet then write to db
                     self.data_writer = self._db_write
-                    self._create_table()
+                    self._create_table(self.table, self.schema)
+                    for extra_output_name in self.extra_output_names:
+                        self._create_table(self.extra_tables[extra_output_name], self.extra_schemas[extra_output_name])
             else:
                 # also write if table doesn't exist
                 self.data_writer = self._db_write
-                self._create_table()
+                self._create_table(self.table, self.schema)
+                for extra_output_name in self.extra_output_names:
+                    self._create_table(self.extra_tables[extra_output_name], self.extra_schemas[extra_output_name])
     
     def process(self, element):
         return element

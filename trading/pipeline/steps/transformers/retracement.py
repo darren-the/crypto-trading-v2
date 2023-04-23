@@ -14,7 +14,11 @@ class Retracement(Task):
             'timestamp': element['timestamp'],
             'candle_timestamp': element['candle_timestamp'],
             'high_retracement': 0,
+            'high_retracement_high': -1,
+            'high_retracement_low': -1,
             'low_retracement': 0,
+            'low_retracement_high': -1,
+            'low_retracement_low': -1,
             'is_complete': element['is_complete'],
         }
 
@@ -49,6 +53,8 @@ class Retracement(Task):
             denom = high['price'] - low['price']
             if denom > 0:
                 retracement['low_retracement'] = (element['close'] - low['price']) / denom
+                retracement['low_retracement_high'] = high['price']
+                retracement['low_retracement_low'] = low['price']
 
         # Calculate high retracement
         if len(last_low_then_high) == 2:
@@ -57,6 +63,8 @@ class Retracement(Task):
             denom = high['price'] - low['price']
             if denom > 0:
                 retracement['high_retracement'] = (high['price'] - element['close']) / denom
+                retracement['high_retracement_high'] = high['price']
+                retracement['high_retracement_low'] = low['price']
     
         return retracement
     

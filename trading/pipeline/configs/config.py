@@ -27,6 +27,7 @@ table = {
     'avgrsi': 'avg_rsi',
     'retracementlong': 'retracement_long',
     'aggregateretracementlong': 'aggregate_retracement_long',
+    'supportcombiner': 'support_combiner',
 }
 schema = {
     'fetchcandles': [
@@ -94,7 +95,11 @@ schema = {
         'timestamp NUMERIC PRIMARY KEY',
         'candle_timestamp NUMERIC NOT NULL',
         'high_retracement NUMERIC NOT NULL',
+        'high_retracement_high NUMERIC NOT NULL',
+        'high_retracement_low NUMERIC NOT NULL',
         'low_retracement NUMERIC NOT NULL',
+        'low_retracement_high NUMERIC NOT NULL',
+        'low_retracement_low NUMERIC NOT NULL',
         'is_complete BOOL NOT NULL',
     ],
     'highlowhistory': [
@@ -120,6 +125,7 @@ schema = {
         'high_retracement NUMERIC NOT NULL',
         'oversold_timeframe TEXT NOT NULL',
         'avg_rsi NUMERIC NOT NULL',
+        'support_range TEXT NOT NULL',
         'retracement_long BOOL NOT NULL',
     ],
     'aggregateretracementlong': [
@@ -127,6 +133,23 @@ schema = {
         'candle_timestamp NUMERIC NOT NULL',
         'agg_retracement_long BOOL NOT NULL',
         'is_complete BOOL NOT NULL',
+    ],
+    'supportcombiner': [
+        'timestamp NUMERIC PRIMARY KEY',
+        'candle_timestamp NUMERIC NOT NULL',
+        'is_complete BOOL NOT NULL',
+    ],
+    'support_history_log': [
+        'timestamp NUMERIC NOT NULL',
+        'time TIMESTAMP NOT NULL',
+        'sup_id NUMERIC NOT NULL',
+        'last_update NUMERIC NOT NULL',
+        'max_timeframe TEXT NOT NULL',
+        'start_timestamp NUMERIC NOT NULL',
+        'end_timestamp NUMERIC NOT NULL',
+        'sup_factor NUMERIC NOT NULL',
+        'sup_top NUMERIC NOT NULL',
+        'sup_bottom NUMERIC NOT NULL',
     ],
 }
 dev_hist_start = '2022-01-01'
