@@ -26,9 +26,7 @@ class Support(Task):
             while len(self.sup_history) > 0 and self.sup_history[-1]['bottom'] > element['low_top']:
                 self.sup_history.pop()
 
-            # Create new support if there is no overlap with previous support
-            if len(self.sup_history) == 0 or self.sup_history[-1]['top'] < element['low_bottom']:
-                new_sup = {
+            new_sup = {
                     'is_sup': True,
                     'start_timestamp': element['low_timestamp'],
                     'end_timestamp': element['low_timestamp'],
@@ -37,18 +35,31 @@ class Support(Task):
                     'bottom': element['low_bottom'],
                     'bottom_history': ''
                 }
+            # Add new support if there is no overlap with previous support
+            if len(self.sup_history) == 0 or self.sup_history[-1]['top'] < element['low_bottom']:
                 self.sup_history.append(new_sup)
             
-            # Merge with previous support if there is overlap
+            # Merge with previous supports if there is overlap
             else:
-                prev_sup = self.sup_history[-1]
-                if prev_sup['bottom'] <= element['low_top'] and prev_sup['top'] >= element['low_bottom']:
-                    prev_sup['end_timestamp'] = element['low_timestamp']
-                    prev_sup['num_lows'] += 1
-                    if prev_sup['bottom'] > element['low_bottom']:
-                        prev_sup['bottom'] = element['low_bottom']
-                    if prev_sup['top'] > element['low_top']:
-                        prev_sup['top'] = element['low_top']
+                overlapping_sups = []
+                for i in range(len(self.sup_history) -1, -1, -1):
+                    if self.sup_history[i]['bottom'] <= element['low_top'] \
+                        and self.sup_history[i]['top'] >= element['low_bottom']:  
+                        overlapping_sups.insert(0, self.sup_history[i])
+                        self.sup_history.pop()
+                    else:
+                        break
+                overlapping_sups.append(new_sup)
+                merged_sup = {
+                    'is_sup': True,
+                    'start_timestamp': min(item['start_timestamp'] for item in overlapping_sups),
+                    'end_timestamp': max(item['end_timestamp'] for item in overlapping_sups),
+                    'num_lows': sum(item['num_lows'] for item in overlapping_sups),
+                    'top': min(item['top'] for item in overlapping_sups),
+                    'bottom': min(item['bottom'] for item in overlapping_sups),
+                    'bottom_history': '',
+                }
+                self.sup_history.append(merged_sup)
                     
             sup = deepcopy(self.sup_history[-1])
         
@@ -59,7 +70,7 @@ class Support(Task):
         # Filter bottom history by num_lows
         filtered_sup = []
         for i in range(len(self.sup_history) - 1, -1, -1):
-            if self.sup_history[i]['num_lows'] >= 2:
+            if self.sup_history[i]['num_lows'] >= 1:
                 filtered_sup = [self.sup_history[i]['bottom']] + filtered_sup
             if len(filtered_sup) >= self.history_length:
                 break
