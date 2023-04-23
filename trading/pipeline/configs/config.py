@@ -119,6 +119,7 @@ schema = {
         'retracement_timeframe TEXT NOT NULL',
         'high_retracement NUMERIC NOT NULL',
         'oversold_timeframe TEXT NOT NULL',
+        'avg_rsi NUMERIC NOT NULL',
         'retracement_long BOOL NOT NULL',
     ],
     'aggregateretracementlong': [

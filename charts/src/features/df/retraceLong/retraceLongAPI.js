@@ -17,6 +17,7 @@ export const fetchRetracelong = async ({
         retracementTimeframe: element[1],
         highRetracement: element[2],
         oversoldTimeframe: element[3],
+        avgRsi: element[4],
       }
     })
   })

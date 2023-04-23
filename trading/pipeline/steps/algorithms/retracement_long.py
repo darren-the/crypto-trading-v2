@@ -18,6 +18,7 @@ class RetracementLong(TimeframeCombiner):
     def process(self, element):
         retracement_long = False
 
+        # check retracement
         timeframes_from_retrace = []
         retracement_timeframe = 'no_timeframe'
         for i in range(len(self.reversed_timeframes)):
@@ -27,14 +28,17 @@ class RetracementLong(TimeframeCombiner):
                 timeframes_from_retrace = self.reversed_timeframes[i + 1:]
                 break
         
+        # check rsi
         oversold_timeframe = 'no_timeframe'
         for t in timeframes_from_retrace:
             if self.oversold - self.oversold_offset <= element[t]['rsi'] <= self.oversold + self.oversold_offset:
                 oversold_timeframe = t
                 break
-        
+
         # update long if conditions are met
-        if retracement_timeframe != 'no_timeframe' and oversold_timeframe != 'no_timeframe':
+        if retracement_timeframe != 'no_timeframe' \
+            and oversold_timeframe != 'no_timeframe' \
+            and element[oversold_timeframe]['avg_rsi'] > self.oversold:
             retracement_long = True
 
         return {
@@ -44,6 +48,9 @@ class RetracementLong(TimeframeCombiner):
                 if retracement_timeframe == 'no_timeframe' \
                 else element[retracement_timeframe]['high_retracement'],
             'oversold_timeframe': oversold_timeframe,
+            'avg_rsi': -1 \
+                if oversold_timeframe == 'no_timeframe' \
+                else element[oversold_timeframe]['avg_rsi'],
             'retracement_long': retracement_long,
         }
         

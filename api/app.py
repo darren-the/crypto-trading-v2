@@ -752,6 +752,7 @@ def chart_retracement_long():
             , retracement_timeframe
             , high_retracement
             , oversold_timeframe
+            , avg_rsi
         FROM {args.get('symbol')}_retracement_long_{args.get('pipeline_id')}
         WHERE
             timestamp >= {args.get('start')}
