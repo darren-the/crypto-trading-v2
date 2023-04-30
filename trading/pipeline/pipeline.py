@@ -8,8 +8,6 @@ from pipeline.steps.candles.aggregate_candles import AggregateCandles
 
 # Import transformers
 from pipeline.steps.transformers.high_low import HighLow
-from pipeline.steps.transformers.resistance import Resistance
-from pipeline.steps.transformers.support import Support
 from pipeline.steps.transformers.rsi import RSI
 from pipeline.steps.transformers.retracement import Retracement
 from pipeline.steps.transformers.high_low_history import HighLowHistory
@@ -53,8 +51,6 @@ def run(pipeline_id):
         aggregate_candles = {s: {}}
         high_low = {s: {}}
         rsi = {s: {}}
-        resistance = {s: {}}
-        support = {s: {}}
         retracement = {s: {}}
         high_low_history = {s: {}}
         avg_rsi = {s: {}}
@@ -77,18 +73,6 @@ def run(pipeline_id):
                 symbol=s,
                 timeframe=t,
                 max_length=14
-            )
-
-            resistance[s][t] = Resistance(
-                symbol=s,
-                timeframe=t,
-                history_length=10
-            )
-
-            support[s][t] = Support(
-                symbol=s,
-                timeframe=t,
-                history_length=10
             )
 
             retracement[s][t] = Retracement(
@@ -118,7 +102,7 @@ def run(pipeline_id):
 
             # set dependencies at a timeframe level
             fetch_candles[s] >> aggregate_candles[s][t] >> [high_low[s][t], rsi[s][t]]
-            high_low[s][t] >> [resistance[s][t], support[s][t], high_low_history[s][t]]
+            high_low[s][t] >> high_low_history[s][t]
             [aggregate_candles[s][t], high_low_history[s][t]] >> retracement[s][t]
             rsi[s][t] >> avg_rsi[s][t]
             [aggregate_candles[s][t], retracement_long[s]] >> agg_retracement_long[s][t]
