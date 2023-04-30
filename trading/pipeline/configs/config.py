@@ -95,7 +95,11 @@ schema = {
         'timestamp NUMERIC PRIMARY KEY',
         'candle_timestamp NUMERIC NOT NULL',
         'high_retracement NUMERIC NOT NULL',
+        'high_retracement_high NUMERIC NOT NULL',
+        'high_retracement_low NUMERIC NOT NULL',
         'low_retracement NUMERIC NOT NULL',
+        'low_retracement_high NUMERIC NOT NULL',
+        'low_retracement_low NUMERIC NOT NULL',
         'is_complete BOOL NOT NULL',
     ],
     'highlowhistory': [
@@ -121,6 +125,7 @@ schema = {
         'high_retracement NUMERIC NOT NULL',
         'oversold_timeframe TEXT NOT NULL',
         'avg_rsi NUMERIC NOT NULL',
+        'support_range TEXT NOT NULL',
         'retracement_long BOOL NOT NULL',
     ],
     'aggregateretracementlong': [

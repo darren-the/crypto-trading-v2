@@ -108,7 +108,12 @@ def run(pipeline_id):
             [aggregate_candles[s][t], retracement_long[s]] >> agg_retracement_long[s][t]
         
     # set dependencies at a symbol level
-    [*rsi[s].values(), *retracement[s].values(), *avg_rsi[s].values()] >> retracement_long[s]
+    [
+        *rsi[s].values(),
+        *retracement[s].values(),
+        *avg_rsi[s].values(),
+        aggregate_candles[s][config.base_timeframe],
+    ] >> retracement_long[s]
     [*high_low[s].values()] >> support_combiner[s]
 
     source = Source()
