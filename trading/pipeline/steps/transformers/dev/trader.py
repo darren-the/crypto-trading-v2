@@ -30,6 +30,7 @@ class Trader(Task):
         self.equity = self.balance
         self.orders = []
         self.transaction_history = []
+        self.extra_output_names = ['transaction_history']
         super().__init__()
         
     def process(self, element):
@@ -37,6 +38,7 @@ class Trader(Task):
         # not all orders will be executed since some may get cancelled
         # self.order_history = []
         self.transaction_history = []
+        self.current_candle['timestamp'] = element['timestamp']
         self.current_candle['open'] = element['open']
         self.current_candle['close'] = element['close']
         self.current_candle['high'] = element['high']
@@ -58,7 +60,7 @@ class Trader(Task):
             'position_base_price': self.position['base_price'],
             'position_amount': self.position['amount'],
             'orders': json.dumps(self.orders),
-            'transaction_history': json.dumps(self.transaction_history),
+            'transaction_history': self.transaction_history,
         }
 
     def _calculate_equity(self):
@@ -92,16 +94,27 @@ class Trader(Task):
             'price': price,
             'amount': amount,
         }
+        if order['amount'] <= 0:
+            return
         if order_type == MARKET_BUY:
             self._market_buy(order)
         elif order_type == MARKET_SELL:
             self._market_sell(order)
         elif order_type == MARKET_STOP_SELL:
             self._market_stop_sell(order)
+        
+    def _cancel_orders(self, order_type=None):
+        if order_type is None:
+            self.orders = []
+        else:
+            i = 0
+            while i < len(self.orders):
+                if order_type == self.orders[i]['order_type']:
+                    self.orders.pop(i)
+                else:
+                    i += 1
 
     def _market_buy(self, order):
-        if order['amount'] <= 0:
-            return
         remaining_balance = self.balance - self.current_candle['close'] * order['amount'] * (1 + TAKER_FEE)
         if remaining_balance < 0:
             return -1
@@ -117,8 +130,6 @@ class Trader(Task):
         self.orders.append(order)
     
     def _market_sell(self, order):
-        if order['amount'] <= 0:
-            return
         self.balance += order['price'] * order['amount'] * (1 - TAKER_FEE)
         self.position['amount'] -= order['amount']
         if self.position['amount'] == 0:
@@ -135,5 +146,7 @@ class Trader(Task):
         base_value = self.position['amount'] * self.position['base_price']
         new_value = self.position['amount'] * self.current_candle['close'] * (1 - TAKER_FEE)
         if (new_value - base_value) / base_value >= 0.01:
+            self._cancel_orders(MARKET_STOP_SELL)
             self._new_order(MARKET_SELL, self.current_candle['close'], self.position['amount'])
+            
         

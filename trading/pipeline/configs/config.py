@@ -159,7 +159,12 @@ schema = {
         'position_base_price NUMERIC NOT NULL',
         'position_amount NUMERIC NOT NULL',
         'orders TEXT NOT NULL',
-        'transaction_history NUMERIC NOT NULL',
+    ],
+    'transaction_history': [
+        'timestamp NUMERIC NOT NULL',
+        'order_type NUMERIC NOT NULL',
+        'price NUMERIC NOT NULL',
+        'amount NUMERIC NOT NULL',
     ]
 }
 dev_hist_start = '2022-01-01'

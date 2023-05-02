@@ -23,7 +23,6 @@ class RetracementLong(TimeframeCombiner):
         timeframes_from_retrace = []
         retracement_timeframe = 'no_timeframe'
         for i in range(len(self.reversed_timeframes)):
-            # print(element, reversed_timeframes[i], flush=True)
             if 0.5 <= element[self.reversed_timeframes[i]]['high_retracement'] <= 1:
                 retracement_timeframe = self.reversed_timeframes[i]
                 timeframes_from_retrace = self.reversed_timeframes[i + 1:]
