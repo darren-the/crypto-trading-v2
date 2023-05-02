@@ -12,13 +12,15 @@ from pipeline.steps.transformers.rsi import RSI
 from pipeline.steps.transformers.retracement import Retracement
 from pipeline.steps.transformers.high_low_history import HighLowHistory
 from pipeline.steps.transformers.avg_rsi import AvgRSI
-from pipeline.steps.combiners.support_combiner import SupportCombiner
+from pipeline.steps.transformers.dev.trader import Trader
 
-# Import algorithms
+# Import combiners
 from pipeline.steps.combiners.retracement_long import RetracementLong
+from pipeline.steps.combiners.support_combiner import SupportCombiner
 
 # Import aggregators
 from pipeline.steps.aggregators.aggregate_retracement_long import AggregateRetracementLong
+from pipeline.steps.aggregators.aggregate_buy_sell import AggregateBuySell
 
 import os
 
@@ -30,6 +32,7 @@ def run(pipeline_id):
     os.environ['PIPELINE_START'] = str(date_str_to_timestamp(config.dev_hist_start))
     os.environ['PIPELINE_END'] = str(date_str_to_timestamp(config.dev_hist_end))
 
+    trader = Trader(balance=10000)
     fetch_candles = {}
     retracement_long = {}
     support_combiner = {}
@@ -55,6 +58,7 @@ def run(pipeline_id):
         high_low_history = {s: {}}
         avg_rsi = {s: {}}
         agg_retracement_long = {s: {}}
+        agg_buy_sell = {s: {}}
 
         for t in config.timeframes:
             # Defining tasks
@@ -100,21 +104,29 @@ def run(pipeline_id):
                 timeframe=t,
             )
 
+            agg_buy_sell[s][t] = AggregateBuySell(
+                symbol=s,
+                timeframe=t,
+            )
+
             # set dependencies at a timeframe level
             fetch_candles[s] >> aggregate_candles[s][t] >> [high_low[s][t], rsi[s][t]]
             high_low[s][t] >> high_low_history[s][t]
             [aggregate_candles[s][t], high_low_history[s][t]] >> retracement[s][t]
             rsi[s][t] >> avg_rsi[s][t]
             [aggregate_candles[s][t], retracement_long[s]] >> agg_retracement_long[s][t]
+            [aggregate_candles[s][t], trader] >> agg_buy_sell[s][t]
         
-    # set dependencies at a symbol level
-    [
-        *rsi[s].values(),
-        *retracement[s].values(),
-        *avg_rsi[s].values(),
-        aggregate_candles[s][config.base_timeframe],
-    ] >> retracement_long[s]
-    [*high_low[s].values()] >> support_combiner[s]
+        # set dependencies at a symbol level
+        [
+            *rsi[s].values(),
+            *retracement[s].values(),
+            *avg_rsi[s].values(),
+            aggregate_candles[s][config.base_timeframe],
+        ] >> retracement_long[s]
+        [*high_low[s].values(), retracement_long[s]] >> support_combiner[s]
+        [retracement_long[s], aggregate_candles[s][config.base_timeframe], support_combiner[s]] >> trader
+
 
     source = Source()
     source.start_source()

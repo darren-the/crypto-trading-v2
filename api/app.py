@@ -770,5 +770,117 @@ def chart_retracement_long():
     conn.close()
     return {'data': query_result}
 
+@app.route('/charts/trader', methods=['GET'])
+def chart_trader():
+    # Require args
+    args = request.args
+    required_args = ['symbol', 'timeframe', 'pipeline_id', 'start', 'end']
+    missing_args = []
+    for required_arg in required_args:
+        if args.get(required_arg) is None:
+            missing_args.append(required_arg)
+    if len(missing_args) > 0:
+        return {'error': 'Missing parameters: ' + str(missing_args)}, 400
+
+    # Connect to the PostgreSQL database
+    conn = psycopg2.connect(
+        host="db",
+        database="mydatabase",
+        user="myuser",
+        password="mypassword"
+    )
+    cur = conn.cursor()
+
+    # Fetch data from table
+    QUERY = f'''
+        WITH
+        trader AS (
+            SELECT
+                timestamp
+                , equity
+            FROM trader_{args.get('pipeline_id')}
+            WHERE
+                timestamp >= {args.get('start')}
+                AND timestamp < {args.get('end')}
+        )
+        
+        , candles AS (
+            SELECT
+                timestamp
+                , candle_timestamp
+                , is_complete
+            FROM {args.get('symbol')}_candles_{args.get('timeframe')}_{args.get('pipeline_id')}
+            WHERE
+                timestamp >= {args.get('start')}
+                AND timestamp < {args.get('end')}
+        )
+
+        SELECT
+            timestamp
+            , candles.candle_timestamp
+            , trader.equity
+            , candles.is_complete
+        FROM trader
+        INNER JOIN candles
+            USING ( timestamp )
+        ORDER BY timestamp
+    '''
+
+    cur.execute(QUERY)
+    query_result = cur.fetchall()
+
+    # Commit the transaction
+    conn.commit()
+
+    cur.close()
+    conn.close()
+    return {'data': query_result}
+
+@app.route('/charts/aggregate_buy_sell', methods=['GET'])
+def chart_aggregate_buy_sell():
+    # Require args
+    args = request.args
+    required_args = ['symbol', 'timeframe', 'pipeline_id', 'start', 'end']
+    missing_args = []
+    for required_arg in required_args:
+        if args.get(required_arg) is None:
+            missing_args.append(required_arg)
+    if len(missing_args) > 0:
+        return {'error': 'Missing parameters: ' + str(missing_args)}, 400
+
+    # Connect to the PostgreSQL database
+    conn = psycopg2.connect(
+        host="db",
+        database="mydatabase",
+        user="myuser",
+        password="mypassword"
+    )
+    cur = conn.cursor()
+
+    # Fetch data from table
+    QUERY = f'''
+        SELECT
+            timestamp
+            , candle_timestamp
+            , agg_buy
+            , agg_sell
+            , is_complete
+        FROM {args.get('symbol')}_aggregate_buy_sell_{args.get('timeframe')}_{args.get('pipeline_id')}
+        WHERE
+            timestamp >= {args.get('start')}
+            AND timestamp < {args.get('end')}
+        ORDER BY timestamp
+    '''
+
+    cur.execute(QUERY)
+    query_result = cur.fetchall()
+
+    # Commit the transaction
+    conn.commit()
+
+    cur.close()
+    conn.close()
+    return {'data': query_result}
+
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=4500, debug=True)
