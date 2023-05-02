@@ -6,6 +6,8 @@ import { createResistanceSeries, updateResistanceSeries } from './resistance/res
 import { createSupportSeries, updateSupportSeries } from './support/supportSeries'
 import { createAvgrsiSeries, updateAvgrsiSeries } from './avgRsi/avgRsiSeries'
 import { createAggretracelongSeries, updateAggretracelongSeries } from './aggRetraceLong/aggRetraceLongSeries'
+import { createTraderSeries, updateTraderSeries } from './trader/traderSeries'
+import { createAggbuysellSeries, updateAggbuysellSeries } from './aggBuySell/aggBuySellSeries'
 
 // =============== ADD CREATE SERIES HERE ===============
 const seriesCreators = {
@@ -16,8 +18,10 @@ const seriesCreators = {
     createResistanceSeries,
     createSupportSeries,
     createAggretracelongSeries,
+    createAggbuysellSeries,
   ],
   'rsi': [ createRsiSeries, createAvgrsiSeries ],
+  'trade': [ createTraderSeries ],
 }
 // ======================================================
 
@@ -31,6 +35,8 @@ const seriesUpdaters = {
   updateSupportSeries,
   updateAvgrsiSeries,
   updateAggretracelongSeries,
+  updateTraderSeries,
+  updateAggbuysellSeries,
 }
 // ======================================================
 

@@ -28,6 +28,8 @@ table = {
     'retracementlong': 'retracement_long',
     'aggregateretracementlong': 'aggregate_retracement_long',
     'supportcombiner': 'support_combiner',
+    'trader': 'trader',
+    'aggregatebuysell': 'aggregate_buy_sell',
 }
 schema = {
     'fetchcandles': [
@@ -136,8 +138,7 @@ schema = {
     ],
     'supportcombiner': [
         'timestamp NUMERIC PRIMARY KEY',
-        'candle_timestamp NUMERIC NOT NULL',
-        'is_complete BOOL NOT NULL',
+        'supports TEXT NOT NULL',
     ],
     'support_history_log': [
         'timestamp NUMERIC NOT NULL',
@@ -151,6 +152,31 @@ schema = {
         'sup_top NUMERIC NOT NULL',
         'sup_bottom NUMERIC NOT NULL',
     ],
+    'trader': [
+        'timestamp NUMERIC PRIMARY KEY',
+        'balance NUMERIC NOT NULL',
+        'equity NUMERIC NOT NULL',
+        'position_base_price NUMERIC NOT NULL',
+        'position_amount NUMERIC NOT NULL',
+        'orders TEXT NOT NULL',
+        'transaction_summary TEXT NOT NULL',
+        'recent_sup_top NUMERIC NOT NULL',
+        'recent_sup_bottom NUMERIC NOT NULL',
+        'risk NUMERIC NOT NULL',
+    ],
+    'transaction_history': [
+        'timestamp NUMERIC NOT NULL',
+        'order_type NUMERIC NOT NULL',
+        'price NUMERIC NOT NULL',
+        'amount NUMERIC NOT NULL',
+    ],
+    'aggregatebuysell': [
+        'timestamp NUMERIC PRIMARY KEY',
+        'candle_timestamp NUMERIC NOT NULL',
+        'agg_buy BOOL NOT NULL',
+        'agg_sell BOOL NOT NULL',
+        'is_complete BOOL NOT NULL',
+    ]
 }
 dev_hist_start = '2022-01-01'
 dev_hist_end = '2022-03-01'

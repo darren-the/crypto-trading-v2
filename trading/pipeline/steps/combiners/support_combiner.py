@@ -2,6 +2,7 @@ from pipeline.base_classes.timeframe_combiner import TimeframeCombiner
 from pipeline.configs import config
 from pipeline.utils.utils import timeframe_to_ms, timestamp_to_date
 from copy import copy
+import json
 
 CREATE = 0
 CLEAR = 1
@@ -77,12 +78,21 @@ class SupportCombiner(TimeframeCombiner):
                     self._insert_sup(new_sup)
                     support_history_log.append(new_sup)
 
+        # Get support within price range
+        support_range = json.loads(element['no_timeframe']['support_range'])
+        supports = []
+        if support_range[0] != -1 and support_range[1] != -1:
+            for i in range(len(self.sup_history) -1, -1, -1):
+                support = self.sup_history[i]
+                if support_range[0] <= support['sup_top'] and support_range[1] >= support['sup_bottom']:
+                    supports.append(support)
+                elif support['sup_top'] < support_range[0]:
+                    break
+
         return {
             'timestamp': element[config.base_timeframe]['timestamp'],
-            'candle_timestamp': element[config.base_timeframe]['candle_timestamp'],
-            # 'support': '[]',
+            'supports': json.dumps(supports),
             'support_history_log': support_history_log,
-            'is_complete': element[config.base_timeframe]['is_complete'],
         }
 
     def _create_sup(self, element, t):
