@@ -28,6 +28,7 @@ table = {
     'retracementlong': 'retracement_long',
     'aggregateretracementlong': 'aggregate_retracement_long',
     'supportcombiner': 'support_combiner',
+    'trader': 'trader',
 }
 schema = {
     'fetchcandles': [
@@ -151,6 +152,15 @@ schema = {
         'sup_top NUMERIC NOT NULL',
         'sup_bottom NUMERIC NOT NULL',
     ],
+    'trader': [
+        'timestamp NUMERIC PRIMARY KEY',
+        'balance NUMERIC NOT NULL',
+        'equity NUMERIC NOT NULL',
+        'position_base_price NUMERIC NOT NULL',
+        'position_amount NUMERIC NOT NULL',
+        'orders TEXT NOT NULL',
+        'transaction_history NUMERIC NOT NULL',
+    ]
 }
 dev_hist_start = '2022-01-01'
 dev_hist_end = '2022-03-01'
