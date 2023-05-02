@@ -110,12 +110,17 @@ class BaseTask:
         if not 'extra_output_names' in self.__dict__.keys():
             self.extra_output_names = []
         self.task_name = str(type(self).__name__).lower()
-        self.task_id = f'{self.symbol}_{self.task_name}'.lower()
-        self.table = f'{self.symbol}_{config.table[self.task_name]}'.lower()
+        if 'symbol' in self.__dict__.keys():
+            symbol_prefix = f'{self.symbol}_'.lower()
+        else:
+            symbol_prefix = ''
+            
+        self.task_id = f'{symbol_prefix}{self.task_name}'.lower()
+        self.table = f'{symbol_prefix}{config.table[self.task_name]}'.lower()
         self.extra_tables = {}
         self.extra_write_batches = {}
         for extra_output_name in self.extra_output_names:
-            self.extra_tables[extra_output_name] = f'{self.symbol}_{extra_output_name}'.lower()
+            self.extra_tables[extra_output_name] = f'{symbol_prefix}{extra_output_name}'.lower()
             self.extra_write_batches[extra_output_name] = []
         if 'timeframe' in self.__dict__.keys():
             self.task_id += f'_{self.timeframe}'.lower()
