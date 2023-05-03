@@ -2,17 +2,17 @@ import { useRef, useContext, useEffect } from 'react'
 import { Context } from '../../context'
 import { createChart } from 'lightweight-charts'
 
-const MainChart = () => {
+const TradeChart = () => {
   const chartRef = useRef()
-  const { setMainChart } = useContext(Context)
+  const { mainChart, setTradeChart } = useContext(Context)
   
   useEffect(() => {
+    if (mainChart === null) return
     const chart = createChart(chartRef.current, {
       width: chartRef.current.clientWidth,
       height: chartRef.current.clientHeight,
     })
-
-    setMainChart(chart)
+    setTradeChart(chart)
     
     // Adjust timescale to show hours and minutes
     chart.timeScale().applyOptions({
@@ -41,6 +41,12 @@ const MainChart = () => {
       },
     })
 
+    // sync chart and TradeChart
+    mainChart.timeScale().subscribeVisibleLogicalRangeChange((VLR) => {
+      if (mainChart === null || chart === null || VLR === null) return
+      chart.timeScale().setVisibleLogicalRange({ from: VLR.from, to: VLR.to })
+    })
+
     // Handle resizing
     const handleResize = () => {
       chart.applyOptions({ width: chartRef.current.clientWidth })
@@ -51,9 +57,9 @@ const MainChart = () => {
       chart.remove()
     }
     // eslint-disable-next-line
-  }, [])
+  }, [mainChart])
 
-  return <div style={{ width: '100%', height: 300 }} ref={chartRef} />
+  return <div style={{ width: '98.5%', height: 150 }} ref={chartRef} />
 }
 
-export default MainChart
+export default TradeChart

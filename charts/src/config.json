@@ -35,6 +35,9 @@
   "retracelong": {
     "path": "/retracement_long"
   },
+  "trader": {
+    "path": "/trader"
+  },
   "timeframes": [
     "1m",
     "5m",

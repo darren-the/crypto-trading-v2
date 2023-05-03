@@ -9,6 +9,7 @@ import { fetchRetracement } from './retracement/retracementAPI'
 import { fetchAvgrsi } from './avgRsi/avgRsiAPI'
 import { fetchAggretracelong } from './aggRetraceLong/aggRetraceLongAPI'
 import { fetchRetracelong } from './retraceLong/retraceLongAPI'
+import { fetchTrader } from './trader/traderAPI'
 
 // ================ ADD FETCH DATA HERE ================
 const fetchDataFeatures = {
@@ -22,6 +23,7 @@ const fetchDataFeatures = {
   fetchAvgrsi,
   fetchAggretracelong,
   fetchRetracelong,
+  fetchTrader,
 }
 // =====================================================
 
@@ -36,13 +38,3 @@ export const fetchDataFeatureThunk = Object.fromEntries(Object.keys(fetchDataFea
   })
   return [nameLower, thunk]
 }))
-
-// TODO define each async thunk here instead
-
-// one async thunk which has a type parameter to call the specific fetchFeature function
-
-/*
-    const updateStoreAndDisplay = () => {
-
-    }
-*/
