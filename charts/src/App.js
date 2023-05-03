@@ -9,12 +9,15 @@ import DfContainer from './components/DfContainer/DfContainer'
 const App = () => {
   const [mainChart, setMainChart] = useState(null)
   const [rsiChart, setRsiChart] = useState(null)
+  const [tradeChart, setTradeChart] = useState(null)
   const variables = {
     mainChart,
     setMainChart,
     rsiChart,
     setRsiChart,
-    series: useCreateSeries(mainChart, rsiChart),
+    tradeChart,
+    setTradeChart,
+    series: useCreateSeries(mainChart, rsiChart, tradeChart),
     ...useCreateDfComponents(),
   }
 

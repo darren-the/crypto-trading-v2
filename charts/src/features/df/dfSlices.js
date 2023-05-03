@@ -15,6 +15,7 @@ const sliceNames = [
   'avgrsi',
   'aggretracelong',
   'retracelong',
+  'trader',
 ]
 // ====================================================
 
