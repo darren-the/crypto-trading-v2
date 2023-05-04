@@ -20,6 +20,7 @@ from pipeline.steps.combiners.support_combiner import SupportCombiner
 
 # Import aggregators
 from pipeline.steps.aggregators.aggregate_retracement_long import AggregateRetracementLong
+from pipeline.steps.aggregators.aggregate_buy_sell import AggregateBuySell
 
 import os
 
@@ -57,6 +58,7 @@ def run(pipeline_id):
         high_low_history = {s: {}}
         avg_rsi = {s: {}}
         agg_retracement_long = {s: {}}
+        agg_buy_sell = {s: {}}
 
         for t in config.timeframes:
             # Defining tasks
@@ -102,12 +104,18 @@ def run(pipeline_id):
                 timeframe=t,
             )
 
+            agg_buy_sell[s][t] = AggregateBuySell(
+                symbol=s,
+                timeframe=t,
+            )
+
             # set dependencies at a timeframe level
             fetch_candles[s] >> aggregate_candles[s][t] >> [high_low[s][t], rsi[s][t]]
             high_low[s][t] >> high_low_history[s][t]
             [aggregate_candles[s][t], high_low_history[s][t]] >> retracement[s][t]
             rsi[s][t] >> avg_rsi[s][t]
             [aggregate_candles[s][t], retracement_long[s]] >> agg_retracement_long[s][t]
+            [aggregate_candles[s][t], trader] >> agg_buy_sell[s][t]
         
         # set dependencies at a symbol level
         [

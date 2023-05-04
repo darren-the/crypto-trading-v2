@@ -38,6 +38,9 @@
   "trader": {
     "path": "/trader"
   },
+  "aggbuysell": {
+    "path": "/aggregate_buy_sell"
+  },
   "timeframes": [
     "1m",
     "5m",

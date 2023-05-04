@@ -1,13 +1,8 @@
 from pipeline.base_classes.task import Task
 import json
+from pipeline.configs.constants import MARKET_BUY, MARKET_SELL, MARKET_STOP_SELL
 
 # TODO: temporary definitions for constants
-LIMIT_BUY = 0
-MARKET_BUY = 1
-LIMIT_SELL = 2
-MARKET_SELL = 3
-MARKET_STOP_SELL = 4
-
 MAKER_FEE = 0.001
 TAKER_FEE = 0.002
 
@@ -67,6 +62,12 @@ class Trader(Task):
                     recent_sup_bottom = support['sup_bottom']
                     risk = round((self.current_candle['close'] - recent_sup_bottom) / self.current_candle['close'], 2)
                     break
+        
+        self._calculate_equity()
+        
+        transaction_summary = []
+        for transaction in self.transaction_history:
+            transaction_summary.append(transaction['order_type'])
 
         return {
             'timestamp': element['timestamp'],
@@ -76,6 +77,7 @@ class Trader(Task):
             'position_amount': self.position['amount'],
             'orders': json.dumps(self.orders),
             'transaction_history': self.transaction_history,
+            'transaction_summary': json.dumps(transaction_summary),
             # temp outputs
             'recent_sup_top': recent_sup_top,
             'recent_sup_bottom': recent_sup_bottom,
@@ -141,7 +143,6 @@ class Trader(Task):
         self.position['amount'] += order['amount']
         self.position['base_price'] = self.current_candle['close'] # TODO: calculate new base price
         self._update_transactions(order)
-        self._calculate_equity()
     
     def _market_stop_sell(self, order):
         if order['price'] > self.current_candle['close'] or order['amount'] > self.position['amount']:
@@ -157,7 +158,6 @@ class Trader(Task):
             # TODO: calculate new base price
             pass
         self._update_transactions(order)
-        self._calculate_equity()
     
     def _take_profit(self):
         if self.position['amount'] <= 0:

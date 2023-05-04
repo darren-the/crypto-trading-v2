@@ -13,9 +13,10 @@ const sliceNames = [
   // 'support',
   'retracement',
   'avgrsi',
-  'aggretracelong',
+  // 'aggretracelong',
   'retracelong',
   'trader',
+  'aggbuysell'
 ]
 // ====================================================
 
