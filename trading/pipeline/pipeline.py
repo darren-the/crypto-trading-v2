@@ -116,8 +116,8 @@ def run(pipeline_id):
             *avg_rsi[s].values(),
             aggregate_candles[s][config.base_timeframe],
         ] >> retracement_long[s]
-        [*high_low[s].values()] >> support_combiner[s]
-        [retracement_long[s], aggregate_candles[s][config.base_timeframe]] >> trader
+        [*high_low[s].values(), retracement_long[s]] >> support_combiner[s]
+        [retracement_long[s], aggregate_candles[s][config.base_timeframe], support_combiner[s]] >> trader
 
 
     source = Source()

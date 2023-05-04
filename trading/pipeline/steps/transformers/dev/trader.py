@@ -11,6 +11,8 @@ MARKET_STOP_SELL = 4
 MAKER_FEE = 0.001
 TAKER_FEE = 0.002
 
+BASELINE_SUP_FACTOR = 900_000
+
 class Trader(Task):
     def __init__(self, *args, **kwargs):
         self.risk = 0.05
@@ -52,6 +54,19 @@ class Trader(Task):
             risk_price = self.current_candle['close'] * (1 - self.risk)
             self._new_order(MARKET_BUY, self.current_candle['close'], amount)
             self._new_order(MARKET_STOP_SELL, risk_price, amount)
+        
+        # temp outputs
+        recent_sup_top = -1
+        recent_sup_bottom = -1
+        risk = -1
+        if element['retracement_long']:
+            supports = json.loads(element['supports'])
+            for support in supports:
+                if support['sup_factor'] >= BASELINE_SUP_FACTOR:
+                    recent_sup_top = support['sup_top']
+                    recent_sup_bottom = support['sup_bottom']
+                    risk = round((self.current_candle['close'] - recent_sup_bottom) / self.current_candle['close'], 2)
+                    break
 
         return {
             'timestamp': element['timestamp'],
@@ -61,6 +76,10 @@ class Trader(Task):
             'position_amount': self.position['amount'],
             'orders': json.dumps(self.orders),
             'transaction_history': self.transaction_history,
+            # temp outputs
+            'recent_sup_top': recent_sup_top,
+            'recent_sup_bottom': recent_sup_bottom,
+            'risk': risk,
         }
 
     def _calculate_equity(self):

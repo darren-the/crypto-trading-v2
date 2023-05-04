@@ -137,8 +137,7 @@ schema = {
     ],
     'supportcombiner': [
         'timestamp NUMERIC PRIMARY KEY',
-        'candle_timestamp NUMERIC NOT NULL',
-        'is_complete BOOL NOT NULL',
+        'supports TEXT NOT NULL',
     ],
     'support_history_log': [
         'timestamp NUMERIC NOT NULL',
@@ -159,6 +158,9 @@ schema = {
         'position_base_price NUMERIC NOT NULL',
         'position_amount NUMERIC NOT NULL',
         'orders TEXT NOT NULL',
+        'recent_sup_top NUMERIC NOT NULL',
+        'recent_sup_bottom NUMERIC NOT NULL',
+        'risk NUMERIC NOT NULL',
     ],
     'transaction_history': [
         'timestamp NUMERIC NOT NULL',
