@@ -10,8 +10,8 @@ BASELINE_SUP_FACTOR = 900_000
 
 class Trader(Task):
     def __init__(self, *args, **kwargs):
-        self.risk = 0.05
         self.balance = 10000
+        self.total_balance_risk = 0.01
         self.__dict__.update(kwargs)
         # TODO: currently positions, current_prices etc. are keyed on symbol but we only have 1 symbol so
         # this isn't an issue right now but in the future when more symbols are needed, a symbol combiner
@@ -24,6 +24,7 @@ class Trader(Task):
             'high': -1,
             'low': -1,
         }
+        self.active_trade = False  # Temporary variable to track when a trade is active
         self.equity = self.balance
         self.orders = []
         self.transaction_history = []
@@ -44,11 +45,12 @@ class Trader(Task):
         self._execute_orders()
         self._take_profit()
 
-        if element['retracement_long']:
-            amount = self._get_max_buyable_amount()
-            risk_price = self.current_candle['close'] * (1 - self.risk)
-            self._new_order(MARKET_BUY, self.current_candle['close'], amount)
-            self._new_order(MARKET_STOP_SELL, risk_price, amount)
+        if element['retracement_long'] and not self.active_trade:
+            risk_price = self._get_support_risk(element)
+            if risk_price > 0:
+                amount = self._get_buy_amount(risk_price)
+                self._new_order(MARKET_BUY, self.current_candle['close'], amount)
+                self._new_order(MARKET_STOP_SELL, risk_price, amount)
         
         # temp outputs
         recent_sup_top = -1
@@ -87,9 +89,11 @@ class Trader(Task):
     def _calculate_equity(self):
         self.equity = self.balance + self.current_candle['close'] * self.position['amount']
     
-    def _get_max_buyable_amount(self):
-        return self.balance / self.current_candle['close'] / (1 + TAKER_FEE)
-
+    def _get_buy_amount(self, risk_price):
+        amount = self.total_balance_risk * self.balance / (self.current_candle['close'] - risk_price * (1 - TAKER_FEE))
+        max_amount = self.balance / self.current_candle['close'] / (1 + TAKER_FEE)
+        return min(amount, max_amount)
+        
     def _update_transactions(self, order):
         self.transaction_history.append({
             'timestamp': self.current_candle['timestamp'],
@@ -142,6 +146,7 @@ class Trader(Task):
         self.balance = remaining_balance
         self.position['amount'] += order['amount']
         self.position['base_price'] = self.current_candle['close'] # TODO: calculate new base price
+        self.active_trade = True
         self._update_transactions(order)
     
     def _market_stop_sell(self, order):
@@ -158,6 +163,7 @@ class Trader(Task):
             # TODO: calculate new base price
             pass
         self._update_transactions(order)
+        self.active_trade = False
     
     def _take_profit(self):
         if self.position['amount'] <= 0:
@@ -168,4 +174,9 @@ class Trader(Task):
             self._cancel_orders(MARKET_STOP_SELL)
             self._new_order(MARKET_SELL, self.current_candle['close'], self.position['amount'])
             
-        
+    def _get_support_risk(self, element):
+        supports = json.loads(element['supports'])
+        for support in supports:
+            if support['sup_factor'] >= BASELINE_SUP_FACTOR:
+                return support['sup_bottom'] * 0.99  # risk level is 1% below support. come up with a better method?
+        return -1
