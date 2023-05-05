@@ -2,11 +2,14 @@ from pipeline.base_classes.timeframe_combiner import TimeframeCombiner
 from pipeline.configs import config
 import json
 
+
 class RetracementLong(TimeframeCombiner):
     def __init__(self, *args, **kwargs):
         self.oversold = 30
         self.oversold_offset = 2.5
+        self.reward_retracement = 0.4
         self.ignore_timeframes = []
+        self.risk_delta_percentage = 0.05
         self.__dict__.update(kwargs)
 
         # Identify timeframes to process based on retracement
@@ -37,11 +40,19 @@ class RetracementLong(TimeframeCombiner):
 
         # update long if conditions are met
         support_range = [-1, -1]
+        reward_price = -1
+        risk_delta = -1
         if retracement_timeframe != 'no_timeframe' \
             and oversold_timeframe != 'no_timeframe' \
             and element[oversold_timeframe]['avg_rsi'] > self.oversold:
             retracement_long = True
             support_range = [element[retracement_timeframe]['high_retracement_low'], element[config.base_timeframe]['close']]
+            reward_price = (
+                element[retracement_timeframe]['high_retracement_high'] - element[config.base_timeframe]['close']
+            ) * self.reward_retracement + element[config.base_timeframe]['close']
+            risk_delta = (
+                element[retracement_timeframe]['high_retracement_high'] - element[retracement_timeframe]['high_retracement_low']
+            ) * self.risk_delta_percentage
         
         return {
             'timestamp': element[config.base_timeframe]['timestamp'],
@@ -54,6 +65,8 @@ class RetracementLong(TimeframeCombiner):
                 if oversold_timeframe == 'no_timeframe' \
                 else element[oversold_timeframe]['avg_rsi'],
             'support_range': json.dumps(support_range),
+            'reward_price': reward_price,
+            'risk_delta': risk_delta,
             'retracement_long': retracement_long,
         }
         

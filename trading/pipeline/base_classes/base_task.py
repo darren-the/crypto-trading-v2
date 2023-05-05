@@ -70,8 +70,10 @@ class BaseTask:
                     self.extra_tables[extra_output_name],
                     self.extra_write_batches[extra_output_name]
                 )
+                self.extra_write_batches[extra_output_name] = []
     
     def _post_data(self, table, values):
+        print(f'post insert to {table}', flush=True)
         requests.post(
             url=f'{config.api_base_url}/insert',
             json={

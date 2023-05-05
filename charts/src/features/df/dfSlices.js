@@ -16,7 +16,8 @@ const sliceNames = [
   // 'aggretracelong',
   'retracelong',
   'trader',
-  'aggbuysell'
+  'aggbuysell',
+  'risk',
 ]
 // ====================================================
 
