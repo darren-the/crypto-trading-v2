@@ -45,9 +45,9 @@ class SupportCombiner(TimeframeCombiner):
                 else:
                     # Merge with previous supports if there is overlap
                     overlapping_sups = []
-                    for i in range(len(self.sup_history) -1, -1, -1):
-                        if self.sup_history[i]['sup_bottom'] <= new_sup['sup_top'] \
-                            and self.sup_history[i]['sup_top'] >= new_sup['sup_bottom']:  
+                    i = len(self.sup_history) - 1
+                    while i >= 0 and self.sup_history[i]['sup_top'] >= new_sup['sup_bottom']:
+                        if self.sup_history[i]['sup_bottom'] <= new_sup['sup_top']:
                             overlapping_sups.insert(0, self.sup_history[i])
                             # mark as merged support
                             merged_sup = copy(self.sup_history.pop(i))
@@ -55,8 +55,7 @@ class SupportCombiner(TimeframeCombiner):
                             merged_sup['time'] = timestamp_to_date(element[t]['timestamp'] / 1000)
                             merged_sup['last_update'] = MERGE
                             support_history_log.append(merged_sup)
-                        else:
-                            break
+                        i -= 1
                     overlapping_sups.append(new_sup)
                     merged_max_timeframe = max(
                         [item['max_timeframe'] for item in overlapping_sups],

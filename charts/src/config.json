@@ -41,6 +41,9 @@
   "aggbuysell": {
     "path": "/aggregate_buy_sell"
   },
+  "risk": {
+    "path": "/risk"
+  },
   "timeframes": [
     "1m",
     "5m",
