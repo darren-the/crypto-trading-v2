@@ -8,6 +8,7 @@ import { createAvgrsiSeries, updateAvgrsiSeries } from './avgRsi/avgRsiSeries'
 import { createAggretracelongSeries, updateAggretracelongSeries } from './aggRetraceLong/aggRetraceLongSeries'
 import { createTraderSeries, updateTraderSeries } from './trader/traderSeries'
 import { createAggbuysellSeries, updateAggbuysellSeries } from './aggBuySell/aggBuySellSeries'
+import { createStructureSeries, updateStructureSeries } from './structure/structureSeries'
 
 // =============== ADD CREATE SERIES HERE ===============
 const seriesCreators = {
@@ -19,6 +20,7 @@ const seriesCreators = {
     createSupportSeries,
     createAggretracelongSeries,
     createAggbuysellSeries,
+    createStructureSeries,
   ],
   'rsi': [ createRsiSeries, createAvgrsiSeries ],
   'trade': [ createTraderSeries ],
@@ -37,6 +39,7 @@ const seriesUpdaters = {
   updateAggretracelongSeries,
   updateTraderSeries,
   updateAggbuysellSeries,
+  updateStructureSeries,
 }
 // ======================================================
 

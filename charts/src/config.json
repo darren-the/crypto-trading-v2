@@ -44,6 +44,9 @@
   "risk": {
     "path": "/risk"
   },
+  "structure": {
+    "path": "/structure"
+  },
   "timeframes": [
     "1m",
     "5m",

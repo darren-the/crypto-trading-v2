@@ -96,7 +96,7 @@ export const horizontalDispatcher = (func, exitConditions) => {
       store.dispatch({ type: `${name}/startLoading` })
     })
 
-    const orderedDfNames = config.dispatchOrder
+    const orderedDfNames = selectDfNames().filter(name => config.dispatchOrder.includes(name))
     const processOrderedDfs = async (func) => {
       for (let i = 0; i < orderedDfNames.length; i++) {
         await func({ name: orderedDfNames[i], ...args })

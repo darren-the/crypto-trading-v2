@@ -13,6 +13,7 @@ from pipeline.steps.transformers.retracement import Retracement
 from pipeline.steps.transformers.high_low_history import HighLowHistory
 from pipeline.steps.transformers.avg_rsi import AvgRSI
 from pipeline.steps.transformers.dev.trader import Trader
+from pipeline.steps.transformers.structure import Structure
 
 # Import combiners
 from pipeline.steps.combiners.retracement_long import RetracementLong
@@ -59,6 +60,7 @@ def run(pipeline_id):
         avg_rsi = {s: {}}
         agg_retracement_long = {s: {}}
         agg_buy_sell = {s: {}}
+        structure = {s: {}}
 
         for t in config.timeframes:
             # Defining tasks
@@ -109,9 +111,14 @@ def run(pipeline_id):
                 timeframe=t,
             )
 
+            structure[s][t] = Structure(
+                symbol=s,
+                timeframe=t,
+            )
+
             # set dependencies at a timeframe level
             fetch_candles[s] >> aggregate_candles[s][t] >> [high_low[s][t], rsi[s][t]]
-            high_low[s][t] >> high_low_history[s][t]
+            high_low[s][t] >> [high_low_history[s][t], structure[s][t]]
             [aggregate_candles[s][t], high_low_history[s][t]] >> retracement[s][t]
             rsi[s][t] >> avg_rsi[s][t]
             [aggregate_candles[s][t], retracement_long[s]] >> agg_retracement_long[s][t]
