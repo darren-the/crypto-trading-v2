@@ -12,6 +12,7 @@ import { fetchRetracelong } from './retraceLong/retraceLongAPI'
 import { fetchTrader } from './trader/traderAPI'
 import { fetchAggbuysell } from './aggBuySell/aggBuySellAPI'
 import { fetchRisk } from './risk/riskAPI'
+import { fetchStructure } from './structure/structureAPI'
 
 // ================ ADD FETCH DATA HERE ================
 const fetchDataFeatures = {
@@ -28,6 +29,7 @@ const fetchDataFeatures = {
   fetchTrader,
   fetchAggbuysell,
   fetchRisk,
+  fetchStructure,
 }
 // =====================================================
 

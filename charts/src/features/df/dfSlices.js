@@ -11,13 +11,14 @@ const sliceNames = [
   'lows',
   // 'resistance',
   // 'support',
-  'retracement',
-  'avgrsi',
+  // 'retracement',
+  // 'avgrsi',
   // 'aggretracelong',
-  'retracelong',
-  'trader',
-  'aggbuysell',
-  'risk',
+  // 'retracelong',
+  // 'trader',
+  // 'aggbuysell',
+  // 'risk',
+  'structure',
 ]
 // ====================================================
 
@@ -29,6 +30,7 @@ const overrideReducers = {
   'support': singleReducers,
   'retracement': singleReducers,
   'retracelong': singleReducers,
+  'structure': singleReducers,
 }
 // ====================================================
 
