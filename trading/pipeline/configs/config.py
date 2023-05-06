@@ -30,6 +30,7 @@ table = {
     'supportcombiner': 'support_combiner',
     'trader': 'trader',
     'aggregatebuysell': 'aggregate_buy_sell',
+    'structure': 'structure',
 }
 schema = {
     'fetchcandles': [
@@ -52,11 +53,13 @@ schema = {
         'timestamp NUMERIC PRIMARY KEY',
         'candle_timestamp NUMERIC NOT NULL',
         'is_high BOOL NOT NULL',
+        'high_id NUMERIC NOT NULL',
         'high_timestamp NUMERIC NOT NULL',
         'high_top NUMERIC NOT NULL',
         'high_bottom NUMERIC NOT NULL',
         'high_colour TEXT NOT NULL',
         'is_low BOOL NOT NULL',
+        'low_id NUMERIC NOT NULL',
         'low_timestamp NUMERIC NOT NULL',
         'low_top NUMERIC NOT NULL',
         'low_bottom NUMERIC NOT NULL',
@@ -178,7 +181,18 @@ schema = {
         'agg_buy BOOL NOT NULL',
         'agg_sell BOOL NOT NULL',
         'is_complete BOOL NOT NULL',
-    ]
+    ],
+    'structure': [
+        'timestamp NUMERIC PRIMARY KEY',
+        'candle_timestamp NUMERIC NOT NULL',
+        'struct_start_timestamp NUMERIC NOT NULL',
+        'struct_end_timestamp NUMERIC NOT NULL',
+        'struct_top NUMERIC NOT NULL',
+        'equil_top NUMERIC NOT NULL',
+        'struct_bottom NUMERIC NOT NULL',
+        'equil_bottom NUMERIC NOT NULL',
+        'is_complete BOOL NOT NULL',
+    ],
 }
 dev_hist_start = '2021-11-27'
 dev_hist_end = '2022-05-08'
