@@ -1,7 +1,6 @@
 from pipeline.base_classes.task import Task
 import numpy as np
 from scipy.stats import spearmanr
-from copy import deepcopy
 
 
 class HighLow(Task):
@@ -9,10 +8,12 @@ class HighLow(Task):
         self.pivot = 5
         self.__dict__.update(kwargs)
         self.current_candles = []
+        self.high_id = 0
         self.high_timestamp = -1
         self.high_top = -1
         self.high_bottom = -1
         self.high_colour = 'none'
+        self.low_id = 0
         self.low_timestamp = -1
         self.low_top = -1
         self.low_bottom = -1
@@ -26,11 +27,13 @@ class HighLow(Task):
             'timestamp': element['timestamp'],
             'candle_timestamp': element['candle_timestamp'],
             'is_high': False,
+            'high_id': self.high_id,
             'high_timestamp': self.high_timestamp,
             'high_top': self.high_top,
             'high_bottom': self.high_bottom,
             'high_colour': self.high_colour,
             'is_low': False,
+            'low_id': self.low_id,
             'low_timestamp': self.low_timestamp,
             'low_top': self.low_top,
             'low_bottom': self.low_bottom,
@@ -76,9 +79,11 @@ class HighLow(Task):
                 if new_alpha != self.alpha:  # a substantial direction change has occured
                     if new_alpha > 0:
                         self.high_low['is_low'] = True
+                        self.low_id += 1
                         self._reset_low()
                     else:
                         self.high_low['is_high'] = True
+                        self.high_id += 1
                         self._reset_high()
                     self.alpha = new_alpha
 
