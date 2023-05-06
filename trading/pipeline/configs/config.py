@@ -128,6 +128,8 @@ schema = {
         'oversold_timeframe TEXT NOT NULL',
         'avg_rsi NUMERIC NOT NULL',
         'support_range TEXT NOT NULL',
+        'reward_price NUMERIC NOT NULL',
+        'risk_delta NUMERIC NOT NULL',
         'retracement_long BOOL NOT NULL',
     ],
     'aggregateretracementlong': [
@@ -178,8 +180,8 @@ schema = {
         'is_complete BOOL NOT NULL',
     ]
 }
-dev_hist_start = '2022-01-01'
-dev_hist_end = '2022-03-01'
+dev_hist_start = '2021-11-27'
+dev_hist_end = '2022-05-08'
 bitfinex = {
     'base_url': 'https://api-pub.bitfinex.com/v2',
     'candle_url': {

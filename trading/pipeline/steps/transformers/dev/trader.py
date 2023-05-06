@@ -1,6 +1,6 @@
 from pipeline.base_classes.task import Task
 import json
-from pipeline.configs.constants import MARKET_BUY, MARKET_SELL, MARKET_STOP_SELL
+from pipeline.configs.constants import MARKET_BUY, MARKET_SELL, MARKET_STOP_SELL, LIMIT_SELL
 
 # TODO: temporary definitions for constants
 MAKER_FEE = 0.001
@@ -12,6 +12,7 @@ class Trader(Task):
     def __init__(self, *args, **kwargs):
         self.balance = 10000
         self.total_balance_risk = 0.01
+        self.min_risk_reward_ratio = 1
         self.__dict__.update(kwargs)
         # TODO: currently positions, current_prices etc. are keyed on symbol but we only have 1 symbol so
         # this isn't an issue right now but in the future when more symbols are needed, a symbol combiner
@@ -43,14 +44,15 @@ class Trader(Task):
         self.current_candle['low'] = element['low']
 
         self._execute_orders()
-        self._take_profit()
+        # self._take_profit()
 
         if element['retracement_long'] and not self.active_trade:
-            risk_price = self._get_support_risk(element)
-            if risk_price > 0:
-                amount = self._get_buy_amount(risk_price)
+            risk_price, reward_price, risk_reward_ratio = self._get_risk_reward(element)
+            if risk_reward_ratio > self.min_risk_reward_ratio:
+                amount = self._get_buy_amount(risk_price) # * self._get_timeframe_scale(element)
                 self._new_order(MARKET_BUY, self.current_candle['close'], amount)
                 self._new_order(MARKET_STOP_SELL, risk_price, amount)
+                self._new_order(LIMIT_SELL, reward_price, amount)
         
         # temp outputs
         recent_sup_top = -1
@@ -62,7 +64,7 @@ class Trader(Task):
                 if support['sup_factor'] >= BASELINE_SUP_FACTOR:
                     recent_sup_top = support['sup_top']
                     recent_sup_bottom = support['sup_bottom']
-                    risk = round((self.current_candle['close'] - recent_sup_bottom) / self.current_candle['close'], 2)
+                    risk = round((self.current_candle['close'] - recent_sup_bottom) / self.current_candle['close'], 4)
                     break
         
         self._calculate_equity()
@@ -106,10 +108,9 @@ class Trader(Task):
         i = 0
         while i < len(self.orders):
             if self.current_candle['low'] <= self.orders[i]['price'] <= self.current_candle['high']:
-                if self.orders[i]['order_type'] == MARKET_STOP_SELL:
-                    self._market_sell(self.orders[i])
-                # TODO: add conditions for LIMIT_BUY and LIMIT_SELL
-                self.orders.pop(i)
+                if self.orders[i]['order_type'] == MARKET_STOP_SELL or self.orders[i]['order_type'] == LIMIT_SELL:
+                    self._sell(self.orders.pop(i))
+                # TODO: add conditions for LIMIT_BUY
             else:
                 i += 1
                 
@@ -122,11 +123,11 @@ class Trader(Task):
         if order['amount'] <= 0:
             return
         if order_type == MARKET_BUY:
-            self._market_buy(order)
+            self._buy(order)
         elif order_type == MARKET_SELL:
-            self._market_sell(order)
-        elif order_type == MARKET_STOP_SELL:
-            self._market_stop_sell(order)
+            self._sell(order)
+        elif order_type == MARKET_STOP_SELL or order_type == LIMIT_SELL:
+            self._create_sell_order(order)
         
     def _cancel_orders(self, order_type=None):
         if order_type is None:
@@ -139,8 +140,12 @@ class Trader(Task):
                 else:
                     i += 1
 
-    def _market_buy(self, order):
-        remaining_balance = self.balance - self.current_candle['close'] * order['amount'] * (1 + TAKER_FEE)
+    def _buy(self, order):
+        if order['order_type'] == MARKET_SELL or order['order_type'] == MARKET_STOP_SELL:
+            fee = TAKER_FEE
+        else:
+            fee = MAKER_FEE
+        remaining_balance = self.balance - self.current_candle['close'] * order['amount'] * (1 + fee)
         if remaining_balance < 0:
             return -1
         self.balance = remaining_balance
@@ -149,13 +154,23 @@ class Trader(Task):
         self.active_trade = True
         self._update_transactions(order)
     
-    def _market_stop_sell(self, order):
-        if order['price'] > self.current_candle['close'] or order['amount'] > self.position['amount']:
+    def _create_sell_order(self, order):
+        if order['amount'] > self.position['amount']:
+            return
+        if order['order_type'] == MARKET_STOP_SELL and order['price'] > self.current_candle['close']:
+            return
+        if order['order_type'] == LIMIT_SELL and order['price'] < self.current_candle['close']:
             return
         self.orders.append(order)
     
-    def _market_sell(self, order):
-        self.balance += order['price'] * order['amount'] * (1 - TAKER_FEE)
+    def _sell(self, order):
+        if order['order_type'] == MARKET_SELL or order['order_type'] == MARKET_STOP_SELL:
+            fee = TAKER_FEE
+            self._cancel_orders(LIMIT_SELL)
+        else:
+            fee = MAKER_FEE
+            self._cancel_orders(MARKET_STOP_SELL)
+        self.balance += order['price'] * order['amount'] * (1 - fee)
         self.position['amount'] -= order['amount']
         if self.position['amount'] == 0:
             self.position['base_price'] = -1
@@ -165,18 +180,33 @@ class Trader(Task):
         self._update_transactions(order)
         self.active_trade = False
     
-    def _take_profit(self):
-        if self.position['amount'] <= 0:
-            return
-        base_value = self.position['amount'] * self.position['base_price']
-        new_value = self.position['amount'] * self.current_candle['close'] * (1 - TAKER_FEE)
-        if (new_value - base_value) / base_value >= 0.01:
-            self._cancel_orders(MARKET_STOP_SELL)
-            self._new_order(MARKET_SELL, self.current_candle['close'], self.position['amount'])
+    # def _take_profit(self):
+    #     if self.position['amount'] <= 0:
+    #         return
+    #     base_value = self.position['amount'] * self.position['base_price']
+    #     new_value = self.position['amount'] * self.current_candle['close'] * (1 - TAKER_FEE)
+    #     if (new_value - base_value) / base_value >= 0.01:
+    #         self._cancel_orders(MARKET_STOP_SELL)
+    #         self._new_order(MARKET_SELL, self.current_candle['close'], self.position['amount'])
             
-    def _get_support_risk(self, element):
+    def _get_risk_reward(self, element):
         supports = json.loads(element['supports'])
         for support in supports:
             if support['sup_factor'] >= BASELINE_SUP_FACTOR:
-                return support['sup_bottom'] * 0.99  # risk level is 1% below support. come up with a better method?
-        return -1
+                risk_price = support['sup_bottom'] - element['risk_delta']
+                reward_price = element['reward_price']
+                reward = reward_price * (1 - MAKER_FEE) - element['close']
+                risk = element['close'] - risk_price * (1 - TAKER_FEE)
+                return risk_price, reward_price, reward / risk  # reward / risk is easier to calculate than the other way around
+        return -1, -1, -1
+    
+    # def _get_timeframe_scale(self, element):
+    #     scale = {
+    #         '1m': 0,
+    #         '5m': 0.15,
+    #         '15m': 0.35,
+    #         '1h': 0.65,
+    #         '4h': 0.85,
+    #         '1D': 1,
+    #     }
+    #     return scale[element['retracement_timeframe']]

@@ -1,5 +1,5 @@
 from pipeline.base_classes.task import Task
-from pipeline.configs.constants import MARKET_BUY, MARKET_SELL, MARKET_STOP_SELL
+from pipeline.configs.constants import MARKET_BUY, MARKET_SELL, MARKET_STOP_SELL, LIMIT_SELL
 import json
 
 class AggregateBuySell(Task):
@@ -13,7 +13,7 @@ class AggregateBuySell(Task):
         for order_type in json.loads(element['transaction_summary']):
             if order_type == MARKET_BUY:
                 self.buy = True
-            elif order_type == MARKET_SELL or order_type == MARKET_STOP_SELL:
+            elif order_type == MARKET_SELL or order_type == MARKET_STOP_SELL or order_type == LIMIT_SELL:
                 self.sell = True
         agg_buy_sell = {
             'timestamp': element['timestamp'],
