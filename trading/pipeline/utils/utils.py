@@ -18,7 +18,7 @@ def timestamp_to_date(timestamp):
 def timeframe_to_ms(timeframe: str) -> int:
     """
     Args:
-        timeframe (str): A string describing a timeframe. E.g. '1m', '15m', '1h', '7D'
+        timeframe (str): A string describing a timeframe. E.g. '1m', '15m', '1h', '1D'
 
     Returns:
         int: The length of the timeframe in milliseconds
@@ -27,7 +27,8 @@ def timeframe_to_ms(timeframe: str) -> int:
         'm': 60_000,
         'h': 3_600_000,
         'D': 86_400_000,
-        # TODO: Add weeks and months (requires more complex logic)
+        'W': 604_800_000,
+        # TODO: Add months (requires more complex logic)
     }
 
     # Check that the timeframe is in the correct format

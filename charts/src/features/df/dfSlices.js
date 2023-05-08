@@ -150,7 +150,12 @@ export const dfSlices = sliceNames.map(sliceName => {
         ) return
         state.incrementMs = newIncrementMs
         state.incrementIndex = newIncrementMs / config.baseMs
-        state.displayTime = state.displayTime - (state.displayTime % state.incrementMs)
+        if (state.timeframe.at(-1) === 'W') {
+          const weeklyStartTimestamp = (new Date(config.weeklyStartDate)).getTime()
+          state.displayTime = state.displayTime - ((state.displayTime - weeklyStartTimestamp) % state.incrementMs)
+        } else {
+          state.displayTime = state.displayTime - (state.displayTime % state.incrementMs)
+        }
         state.displayedData = []
       },
       ...overrideReducers[sliceName]

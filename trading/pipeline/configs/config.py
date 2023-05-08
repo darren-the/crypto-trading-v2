@@ -12,6 +12,7 @@ timeframes = [
     # '12h',
     '1D',
     # '2D',
+    '1W',
 ]
 base_timeframe = '1m'
 base_ms = 60_000
@@ -206,3 +207,4 @@ bitfinex = {
 }
 max_write_batch_size = 10_000
 api_base_url = 'http://api:4500'
+weekly_start_date = '2011-08-15'  # based on bitstamp earliest history
