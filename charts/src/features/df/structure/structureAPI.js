@@ -19,7 +19,9 @@ export const fetchStructure = async ({
         equilTop: element[3],
         structBottom: element[4],
         equilBottom: element[5],
-        is_complete: element[6],
+        structTopBreak: element[6],
+        structBottomBreak: element[7],
+        is_complete: element[8],
       }
     })
 })

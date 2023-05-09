@@ -2,6 +2,7 @@ import RetraceLong from './RetraceLong'
 import Retracement from './Retracement'
 import Risk from './Risk'
 import RsiProject from './RsiProject'
+import Structure from './Structure'
 
 const DfContainer = () => {
   return (
@@ -10,6 +11,7 @@ const DfContainer = () => {
       <RetraceLong />
       <Risk />
       <RsiProject />
+      <Structure />
     </div>
   )
 }
