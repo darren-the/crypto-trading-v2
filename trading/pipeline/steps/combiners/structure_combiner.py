@@ -22,4 +22,5 @@ class StructureCombiner(TimeframeCombiner):
     def _max_timeframe_break(self, element):
         max_timeframe = 'no_timeframe'
         for t in self.reversed_timeframes:
-            if element[t]['struct_top'] == -1 and element
+            if element[t]['struct_top'] == -1 and element:
+                pass
