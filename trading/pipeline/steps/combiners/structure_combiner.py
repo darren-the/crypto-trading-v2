@@ -24,4 +24,4 @@ class StructureCombiner(TimeframeCombiner):
         for t in self.reversed_timeframes:
             if element[t]['struct_top'] == -1 and element:
                 pass
-            pass
+            passasdasd
