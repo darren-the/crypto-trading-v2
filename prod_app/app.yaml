@@ -1,0 +1,9 @@
+runtime: python39
+
+handlers:
+- url: /.*
+  secure: always
+  redirect_http_response_code: 301
+  script: auto
+
+app_engine_apis: true
