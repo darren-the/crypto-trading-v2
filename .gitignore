@@ -34,3 +34,6 @@ charts/yarn-error.log*
 
 # POSTGRESQL DATABASE
 pgdata
+
+# Service accounts
+crypto-trading-v2*

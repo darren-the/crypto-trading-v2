@@ -16,4 +16,4 @@ def hello_world():
         subject=f"{symbol} price: {candle['close']}",
         body=""
     )
-    return "<p>Hello, World!</p>"
+    return "<p>Success</p>"

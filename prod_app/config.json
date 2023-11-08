@@ -1,0 +1,18 @@
+{
+  "base_timeframe": "5m",
+  "symbols": ["BTCUSD", "ETHUSD", "LTCUSD", "SOLUSD"],
+  "timeframes": ["5m", "15m", "1h", "4h", "1D", "1W"],
+  "max_write_batch_size": 10000,
+  "hist_start_date": "2023-06-01",
+  "hist_end_date": "2023-09-01",
+  "bigquery": {
+    "project_id": "crypto-trading-v2",
+    "dataset_id": "data",
+    "max_retries": 5
+  },
+  "bitfinex": {
+    "base_url": "https://api-pub.bitfinex.com/v2/candles/trade:[TIMEFRAME]:t[SYMBOL]/[UPDATE_METHOD]",
+    "max_data_per_req": 10000,
+    "max_req_per_min": 90
+  }
+}
