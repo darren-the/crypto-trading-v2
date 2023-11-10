@@ -12,7 +12,7 @@ class Task(BaseTask):
         self.env_type = os.getenv('ENV_TYPE')
         self.base_interval = timeframe_to_ms(conf["base_timeframe"])
         self.start = date_str_to_timestamp(conf["hist_start_date"])
-        self.end = date_str_to_timestamp(conf["hist_end_date"]) - self.base_interval
+        self.end = date_str_to_timestamp(conf["hist_end_date"])
         tasks_obj[self.task_id] = self
         self.source_output = self.generate()
         self._init_from_env_type()
@@ -51,15 +51,14 @@ class Task(BaseTask):
             output_task.activate()
     
     def kill_all(self):
-        if self.status == ACTIVATED or self.status == DEACTIVATED:
-            self.output_element = None
-            print(f'shutting down {self.task_id}', flush=True)
-            self.data_writer(flush=True)
-            self._deactivate_task()
-            if self.logging:
-                self._close_log()
-            for output_task in self.output_tasks:
-                output_task.kill_all()
+        self.output_element = None
+        print(f'shutting down {self.task_id}', flush=True)
+        self.data_writer(flush=True)
+        self._deactivate_task()
+        if self.logging:
+            self._close_log()
+        for output_task in self.output_tasks:
+            output_task.kill_all()
     
     def _combine_inputs(self):
         # TODO: need to fix cases where one element is None but the rest aren't

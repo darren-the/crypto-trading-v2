@@ -2,6 +2,7 @@ import requests
 from app.common.common_utils import timeframe_to_ms, load_config
 import time
 from app.pipeline.base_classes.task import Task
+from copy import deepcopy
 
 
 conf = load_config()
@@ -16,12 +17,14 @@ class FetchCandles(Task):
         self.limit = self.exch_conf["max_data_per_req"]
         self.interval = timeframe_to_ms(conf["base_timeframe"])
         self.table_name = "base_candles"
+        self.last_candle = None
+        self.final_batch_flag = False
+
         super().__init__()
-        self.prev_timestamp = self._get_prev_timestamp()  # requires start variable
+        self.fetch_end = self.end - self.interval
 
     def generate(self):
         yield from self._fetch_batch_candles()
-        yield from self._empty_candle_gen()
 
     def _create_url(self):
         base_url = self.exch_conf["base_url"]
@@ -29,24 +32,6 @@ class FetchCandles(Task):
         base_url = base_url.replace(f"[SYMBOL]", self.symbol)
         base_url = base_url.replace(f"[UPDATE_METHOD]", "hist")  # bitfinex specific param
         return base_url
-    
-    def _get_prev_timestamp(self):
-        payload = {
-            'end': self.start - self.interval,
-            'limit': 1,
-        }
-        try:
-            candles = requests.get(self.url, params=payload).json()
-        except:
-            raise Exception(f'''
-                Invalid request.\n
-                Arguments:\n
-                \turl: {self.url}\n
-                \tparams: {str(payload)}\n
-            ''')
-        if len(candles) > 0:
-            return candles[0][0]
-        return None
     
     def _fetch_candles(self, start, end):
         payload = {
@@ -66,25 +51,13 @@ class FetchCandles(Task):
             ''')
     
     def _fetch_batch_candles(self):
-        for i in range(self.start, self.end, self.limit * self.interval):
+        for i in range(self.start, self.fetch_end, self.limit * self.interval):
             batch_start = i
-            batch_end = min(i + self.limit * self.interval, self.end)
+            batch_end = min(i + self.limit * self.interval, self.fetch_end)
+            if batch_end == self.fetch_end:
+                self.final_batch_flag = True
             candles = self._fetch_candles(batch_start, batch_end)
-            for candle in candles:
-                element = {
-                    "exchange": self.exchange,
-                    "symbol": self.symbol,
-                    "timeframe": conf["base_timeframe"],
-                    'timestamp': candle[0],
-                    'open': candle[1],
-                    'close': candle[2],
-                    'high': candle[3],
-                    'low': candle[4],
-                    "prev_timestamp": self.prev_timestamp
-                }
-                if self.prev_timestamp is not None and element["timestamp"] > self.prev_timestamp:
-                    yield element
-                self.prev_timestamp = element["timestamp"]
+            yield from self._clean_candles(candles)
 
             # Calculate length of time delay to not breach req limit
             # TODO: technically we should be calling the API through our own API build
@@ -92,8 +65,54 @@ class FetchCandles(Task):
             # This delay would only come in affect once our API is bottlenecked.
             delay = 60 * len(conf["symbols"]) / self.exch_conf["max_req_per_min"]
             time.sleep(delay)
-    
-    def _empty_candle_gen(self):
-        # Generate None's to fill gap till end timestamp
-        for _ in range(self.prev_timestamp, self.end, self.interval):
-            yield None
+
+    def _format_candle(self, raw_candle):
+        return {
+            "exchange": self.exchange,
+            "symbol": self.symbol,
+            "timeframe": conf["base_timeframe"],
+            'timestamp': raw_candle[0],
+            'open': raw_candle[1],
+            'close': raw_candle[2],
+            'high': raw_candle[3],
+            'low': raw_candle[4],
+        }
+
+    def _clean_candles(self, candles):
+        '''
+        Format candles and impute missing data with 1) previous candle, or if that doesn't exist
+        then 2) the next candle.
+        '''
+        for i in range(len(candles)):
+            candle = candles[i]
+            element = self._format_candle(candle)
+
+            # Skip duplicates
+            if self.last_candle is not None and self.last_candle['timestamp'] == element['timestamp']:
+                continue
+
+            # Check whether the first candles are missing
+            if self.last_candle is None and element['timestamp'] != self.start:
+                # Copy the OCHL data from the next most available candle
+                for t in range(self.start, element['timestamp'], self.interval):
+                    element_copy = deepcopy(element)
+                    element_copy['timestamp'] = t
+                    yield element_copy
+
+            # Check whether other candles are missing
+            elif self.last_candle is not None and element['timestamp'] - self.last_candle['timestamp'] > self.interval:
+                # Copy the OCHL data from the last available candle
+                for t in range(self.last_candle['timestamp'] + self.interval, element['timestamp'], self.interval):
+                    last_copy = deepcopy(self.last_candle)
+                    last_copy['timestamp'] = t
+                    yield last_copy
+
+            self.last_candle = element
+            yield element
+
+            # Check whether there is a gap between the last candle and the end timestamp
+            if self.final_batch_flag and i == len(candles) - 1:
+                for t in range(self.last_candle['timestamp'] + self.interval, self.end, self.interval):
+                    last_copy = deepcopy(self.last_candle)
+                    last_copy['timestamp'] = t
+                    yield last_copy

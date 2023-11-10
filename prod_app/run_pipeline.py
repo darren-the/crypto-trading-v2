@@ -6,7 +6,7 @@ from app.pipeline.steps.candles.fetch_candles import FetchCandles
 
 import os
 
-from app.pipeline.base_classes.source import Source
+from app.pipeline.base_classes.master import Master
 
 
 conf = load_config()
@@ -36,8 +36,8 @@ def run():
             # e.g. fetch_candles[s] >> aggregate_candles[s][t]
             pass
 
-    source = Source()
-    source.start_source()
+    master = Master()
+    master.start_pipeline()
 
     # maybe source.backfill()
 

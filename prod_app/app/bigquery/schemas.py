@@ -11,6 +11,5 @@ schemas = {
         bigquery.SchemaField("close", "NUMERIC", mode="REQUIRED"),
         bigquery.SchemaField("high", "NUMERIC", mode="REQUIRED"),
         bigquery.SchemaField("low", "NUMERIC", mode="REQUIRED"),
-        bigquery.SchemaField("prev_timestamp", "NUMERIC")
     ]
 }
