@@ -3,6 +3,7 @@ from app.common.common_utils import date_str_to_timestamp, load_config
 
 # Import candle steps
 from app.pipeline.steps.candles.fetch_candles import FetchCandles
+from app.pipeline.steps.candles.aggregate_candles import AggregateCandles
 
 import os
 
@@ -22,19 +23,20 @@ def run():
     clean_candles = {}
     for s in conf["symbols"]:
         fetch_candles[s] = FetchCandles(
-            exchange=EXCHANGE, symbol=s, ignore_pipeline_id=True)
-        # clean_candles[s] = CleanCandles(symbol=s)
+            exchange=EXCHANGE,
+            symbol=s
+        )
 
-        # Timeframe task objects
-        # e.g. aggregate_candles = {s: {}}
+        aggregate_candles = {s: {}}
 
         for t in conf["timeframes"]:
-            # Defining tasks
-            # E.g. aggregate_candles[s][t] = AggregateCandles(symbol=s, timeframe=t)
+            aggregate_candles[s][t] = AggregateCandles(
+                exchange=EXCHANGE,
+                symbol=s,
+                timeframe=t
+            )
 
-            # set dependencies at a timeframe level
-            # e.g. fetch_candles[s] >> aggregate_candles[s][t]
-            pass
+            fetch_candles[s] >> aggregate_candles[s][t]
 
     master = Master()
     master.start_pipeline()

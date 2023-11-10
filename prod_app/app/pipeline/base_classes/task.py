@@ -66,9 +66,10 @@ class Task(BaseTask):
         input_elements = {}
         for input_task in self.input_tasks:
             if input_task.output_element is None \
-                or (self.output_element is not None and self.output_element['timestamp'] + config.base_ms != input_task.output_element['timestamp']):
-                # raise Exception(f'this should never happen. Expected timestamp = {self.output_element["timestamp"] + config.base_ms}, recieved timestamp = {input_task.output_element["timestamp"]}')
-                return None
+                or (self.output_element is not None and self.output_element['timestamp'] \
+                    + timeframe_to_ms(conf['base_timeframe']) != input_task.output_element['timestamp']):
+                raise Exception(f'this should never happen. Expected timestamp = {self.output_element["timestamp"] + conf["base_timeframe"]}, recieved timestamp = {input_task.output_element["timestamp"]}')
+                # return None
             input_elements = input_elements | input_task.output_element
         return input_elements
     

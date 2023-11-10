@@ -5,6 +5,7 @@
   "max_write_batch_size": 10000,
   "hist_start_date": "2023-06-01",
   "hist_end_date": "2023-09-01",
+  "weekly_start_date": "2011-08-15",
   "bigquery": {
     "project_id": "crypto-trading-v2",
     "dataset_id": "data",
