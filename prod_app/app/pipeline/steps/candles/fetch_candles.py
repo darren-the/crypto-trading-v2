@@ -63,7 +63,7 @@ class FetchCandles(Task):
             # TODO: technically we should be calling the API through our own API build
             # this could then track the number of requests properly, regardless of symbol.
             # This delay would only come in affect once our API is bottlenecked.
-            delay = 60 * len(conf["symbols"]) / self.exch_conf["max_req_per_min"]
+            delay = 60 / self.exch_conf["max_req_per_min"]
             time.sleep(delay)
 
     def _format_candle(self, raw_candle):
