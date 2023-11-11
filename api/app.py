@@ -956,7 +956,9 @@ def chart_structure():
             , struct_top
             , equil_top
             , struct_bottom
-            , equil_bottom
+            , equil_bottom 
+            , struct_top_break
+            , struct_bottom_break
             , is_complete
         FROM {args.get('symbol')}_structure_{args.get('timeframe')}_{args.get('pipeline_id')}
         WHERE

@@ -6,6 +6,8 @@ class Structure(Task):
         self.__dict__.update(kwargs)
         self.struct_top = -1
         self.struct_bottom = -1
+        self.struct_top_break = False
+        self.struct_bottom_break = False
         self.equil_top = -1
         self.equil_bottom = -1
         self.struct_start_timestamp = -1
@@ -18,9 +20,11 @@ class Structure(Task):
             'timestamp': element['timestamp'],
             'candle_timestamp': element['candle_timestamp'],
             'struct_start_timestamp': self.struct_start_timestamp,
+            'struct_end_timestamp': self.struct_end_timestamp,
+            'struct_top_break': self.struct_top_break,
             'struct_top': self.struct_top,
             'equil_top': self.equil_top,
-            'struct_end_timestamp': self.struct_end_timestamp,
+            'struct_bottom_break': self.struct_bottom_break,
             'struct_bottom': self.struct_bottom,
             'equil_bottom': self.equil_bottom,
             'is_complete': element['is_complete'],
@@ -49,6 +53,8 @@ class Structure(Task):
     def _reset_struct(self):
         self.struct['struct_top'] = -1
         self.struct['struct_bottom'] = -1
+        self.struct['struct_top_break'] = False
+        self.struct['struct_bottom_break'] = False
         self.struct['equil_top'] = -1
         self.struct['equil_bottom'] = -1
         self.struct['struct_start_timestamp'] = -1
@@ -56,9 +62,11 @@ class Structure(Task):
     
     def _save_struct(self):
         self.struct_start_timestamp = self.struct['struct_start_timestamp']
+        self.struct_end_timestamp = self.struct['struct_end_timestamp']
+        self.struct_top_break = self.struct['struct_top_break']
+        self.struct_bottom_break = self.struct['struct_bottom_break']
         self.struct_top = self.struct['struct_top']
         self.equil_top = self.struct['equil_top']
-        self.struct_end_timestamp = self.struct['struct_end_timestamp']
         self.struct_bottom = self.struct['struct_bottom']
         self.equil_bottom = self.struct['equil_bottom']
 
@@ -72,6 +80,7 @@ class Structure(Task):
                 self.struct['struct_start_timestamp'] = element['high_timestamp']
         elif self.struct['struct_top'] < element['high_bottom']:
             self._reset_struct()
+            self.struct['struct_top_break'] = True
             self.struct['struct_top'] = self.struct['equil_top'] = element['high_top']
             self.struct['struct_start_timestamp'] = element['high_timestamp']
         elif self.struct['struct_top'] < element['high_top']:
@@ -79,6 +88,7 @@ class Structure(Task):
         else:
             self.struct['equil_top'] = element['high_top']
         self.struct['struct_end_timestamp'] = element['high_timestamp']
+        self._reset_struct_break()
         if element['is_high']:
             self._save_struct()
 
@@ -92,6 +102,7 @@ class Structure(Task):
                 self.struct['struct_start_timestamp'] = element['low_timestamp']
         elif self.struct['struct_bottom'] > element['low_top']:
             self._reset_struct()
+            self.struct['struct_bottom_break'] = True
             self.struct['struct_bottom'] = self.struct['equil_bottom'] = element['low_bottom']
             self.struct['struct_start_timestamp'] = element['low_timestamp']
         elif self.struct['struct_bottom'] > element['low_bottom']:
@@ -99,5 +110,10 @@ class Structure(Task):
         else:
             self.struct['equil_bottom'] = element['low_bottom']
         self.struct['struct_end_timestamp'] = element['low_timestamp']
+        self._reset_struct_break()
         if element['is_low']:
             self._save_struct()
+    
+    def _reset_struct_break(self):
+        if self.struct['struct_top'] != -1 and self.struct['struct_bottom'] != -1:
+            self.struct['struct_bottom_break'] = self.struct['struct_top_break'] = False
